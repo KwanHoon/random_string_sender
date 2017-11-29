@@ -4,25 +4,36 @@
 
 #include "str_gen.h"
 
-
-int alloc_str_with_ts(struct str_with_ts *str_with_ts, struct cfg_info *cfg)
+int init_str_with_ts(struct str_with_ts *str_with_ts, struct cfg_info *cfg)
 {
-	/*
-	if(cfg == NULL) {
-		if(str == NULL) {
-			fprintf(stderr, "string is null\n");
-			return -1;
-		}
-		str_with_ts->str = (char *)malloc(MAX_STR_LEN);
-		str_with_ts->str_len = MAX_STR_LEN;
-		str_with_ts->timestamp = NULL;
-	}
-	else {
-		fprintf(stderr "not implemented\n");
+	size_t total_len = 0;
+
+	if(str_with_ts == NULL || cfg == NULL) {
+		fprintf(stderr, "Init value is null\n");
 		return -1;
 	}
-	*/
-	
+
+	str_with_ts->len = cfg->len;
+	str_with_ts->tm_len = TIMESTAMP_LEN;
+	memcpy(str_with_ts->tm_fmt, cfg->timestamp_fmt, sizeof(str_with_ts->tm_fmt));
+
+	total_len = str_with_ts->len + 1 + str_with_ts->tm_len + 1;
+
+	fprintf(stderr, "  total len: %d\n", total_len);
+
+	str_with_ts->rand_str = (char *)malloc(total_len);
+	str_with_ts->str =(char *)malloc(str_with_ts->len);
+	str_with_ts->tm_str = (char *)malloc(str_with_ts->tm_len);
+
+	if(str_with_ts->rand_str == NULL
+	  || str_with_ts->str == NULL
+	  || str_with_ts->tm_str == NULL) {
+		fprintf(stderr, "Failed to alloc string memory\n");
+		return -1;
+	}
+
+	memcpy(str_with_ts->tm_fmt, cfg->timestamp_fmt, sizeof(str_with_ts->tm_fmt));
+
 	return 0;
 }
 
@@ -48,25 +59,20 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 {
 	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	struct tm *timestamp;
+	char rand_str_fmt[] = "%s,%s";
 	time_t t;
 	size_t total_len = 0;
+	size_t n = 0;
 
-	str_with_ts->len = STR_LEN;
-	str_with_ts->tm_len = TIME_LEN;
+	char temp[100];
 
-	total_len = str_with_ts->len + 1 + str_with_ts->tm_len + 1;
-
+	
 	if(str_with_ts == NULL) {
 		fprintf(stderr, "string is null\n");
 		return -1;
 	}
 
-	if(str_with_ts->rand_str == NULL)
-		str_with_ts->rand_str = (char *)malloc(total_len);
-	if(str_with_ts->str == NULL)
-		str_with_ts->str =(char *)malloc(str_with_ts->len);
-	if(str_with_ts->tm_str == NULL)
-		str_with_ts->tm_str = (char *)malloc(str_with_ts->tm_len);
+	total_len = str_with_ts->len + 1 + str_with_ts->tm_len + 1;
 
 	memset(str_with_ts->rand_str, '\0', total_len);
 	memset(str_with_ts->str, '\0', str_with_ts->len);
@@ -75,11 +81,15 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 	// get local current time
 	t = time(NULL);
 	timestamp = localtime(&t);
-	strftime(str_with_ts->tm_str, str_with_ts->tm_len, "%c", timestamp);
+	if(strftime(str_with_ts->tm_str, str_with_ts->tm_len, str_with_ts->tm_fmt, timestamp) == 0) {
+		perror("Failed to get timestamp");
+		return -1;
+	}
 	//fprintf(stderr, "[debug] timestamp: {%s}\n", str_with_ts->tm_str);
 	
+	// make random string
 	if(str_with_ts->str) {
-		for(size_t n = 0; n < str_with_ts->len; n++) {
+		for(n = 0; n < str_with_ts->len - 1; n++) {
 			int key = rand() % (int)(sizeof(charset) - 1);
 			str_with_ts->str[n] = charset[key];
 		}
@@ -87,20 +97,8 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 	//fprintf(stderr, "[debug] random string: {%s}\n", str_with_ts->str);
 	
 	// copy random string & timestamp
-	memcpy(str_with_ts->rand_str, str_with_ts->str, str_with_ts->len);
-	str_with_ts->rand_str[str_with_ts->len + 1] = ',';	
-	memcpy(str_with_ts->rand_str + str_with_ts->len + 2, str_with_ts->tm_str, str_with_ts->tm_len);
-	str_with_ts->rand_str[total_len] = '\0';
-
-	//fprintf(stderr, "[debug] total string: {%s}, len: {%lu}\n", str_with_ts->rand_str, total_len);
-
-	/*
-	fprintf(stderr, "[debug]");
-	for(size_t i = 0; i < total_len; i++) {
-		fprintf(stderr, "%c", str_with_ts->rand_str[i]);
-	}
-	fprintf(stderr, "\n");
-	*/
-		
+	sprintf(str_with_ts->rand_str, rand_str_fmt, str_with_ts->str, str_with_ts->tm_str);
+	fprintf(stderr, "[debug] total string: {%s}, len: {%lu}\n", str_with_ts->rand_str, total_len);	
+	//
 	return 0;	
 }

@@ -1,141 +1,81 @@
 #include "queue.h"
 
-#include <stdio.h>
-#include <string.h>
-
-struct queue *create_new_queue(size_t max_size)
+// function to create a queue of given capacity. 
+// It initializes size of queue as 0
+struct Queue* createQueue(unsigned capacity)
 {
-	struct queue *new_queue = NULL;
-	
-	new_queue = (struct queue *)malloc(sizeof(struct queue));
-	if(new_queue == NULL) {
-		perror("failed to create new queue");
-		return NULL;
-	}
-	 
-	new_queue->first = NULL;
-	new_queue->last = NULL;
-	new_queue->size = 0;
+ struct Queue* queue = (struct Queue*) malloc(sizeof(struct Queue));
+ queue->capacity = capacity;
+ queue->front = queue->size = 0; 
+ queue->rear = capacity - 1;  // This is important, see the enqueue
+ //queue->array = (int *)malloc(queue->capacity * sizeof(int));
+ queue->array = (struct Element *)malloc(queue->capacity * sizeof(struct Element));
 
-	//new_queue->mtx = PTHREAD_MUTEX_INITIALIZER;
-	if(pthread_mutex_init(&new_queue->mtx, NULL) != 0) {
-		perror("Failed to initialize mutex of queue");
-		return NULL;
-	}
-
-	return new_queue;
+ return queue;
 }
 
-int release_queue(struct queue *queue)
-{
-	if(queue == NULL) {
-		fprintf(stderr, "queue to release is null");	
-		return -1;
-	}
-
-	queue->first = NULL;
-	queue->last = NULL;
-	queue->size = 0;
-
-	pthread_mutex_destroy(&queue->mtx);
-
-	free(queue);
-	queue = NULL;
-
-	return 0;
+// Queue is full when size becomes equal to the capacity 
+int isFull(struct Queue* queue)
+{  
+ return (queue->size == queue->capacity);  
 }
 
-//int enqueue(struct queue *queue, struct queue_node *node)
-int enqueue(struct queue *queue, void *data)
-{
-	struct queue_node *new_node = NULL;
-
-	if(queue == NULL) {
-		fprintf(stderr, "queue is null\n");
-		return -1;
-	}
-
-	if(data == NULL) {
-		fprintf(stderr, "data is null\n");
-		return -1;
-	}
-
-	pthread_mutex_lock(&queue->mtx);
-
-	// alloc new queue node
-	new_node = (struct queue_node *)malloc(sizeof(struct queue_node));
-	if(new_node == NULL) {
-		perror("Failed to alloc new node");
-		pthread_mutex_unlock(&queue->mtx);
-		return -1;
-	}
-	new_node->data = data;
-	new_node->next = NULL;
-
-	// insert to queue
-	if(queue->first == NULL)
-		queue->first = new_node;
-	else
-		queue->first->next = new_node;
-
-	queue->last= new_node;
-	queue->size++;
-
-	fprintf(stderr, "queue size: %lu\n", queue->size);
-
-	pthread_mutex_unlock(&queue->mtx);
-
-	return 0;
+// Queue is empty when size is 0
+int isEmpty(struct Queue* queue)
+{  
+ return (queue->size == 0); 
 }
 
-struct queue_node dequeue(struct queue *queue)
+// Function to add an item to the queue.  
+// It changes rear and size
+//void enqueue(struct Queue* queue, int item)
+int enqueue(struct Queue* queue, struct Element item)
 {
-	struct queue_node node;
-	struct queue_node *new_first = NULL;
+ if (isFull(queue)) {
+  fprintf(stderr, "queue is full\n");
+  return -1;
+ }
 
-	memset(&node, 0x00, sizeof(node)); if(queue == NULL) {
-		fprintf(stderr, "queue is null");
-		return node;
-	}
+ queue->rear = (queue->rear + 1)%queue->capacity;
+ queue->array[queue->rear] = item;
+ queue->size = queue->size + 1;
 
-	if(queue->first == NULL) {
-		fprintf(stderr, "queue is empty");
-		return node;
-	}
-
-	pthread_mutex_lock(&queue->mtx);
-
-	fprintf(stderr, "dequeue ~~~\n");
-
-	// dequeue first node of queue
-	node = *(queue->first);
-	new_first = queue->first->next;
-	free(queue->first);
-	
-	// re-point next node
-	queue->first = new_first;
-
-	queue->size--;
-
-
-	fprintf(stderr, "queue size: %lu\n", queue->size);
-	
-	// when free?????
-
-	pthread_mutex_unlock(&queue->mtx);
-	
-	return node;
+ return 0;
 }
 
-int is_empty(struct queue *queue)
+// Function to remove an item from queue. 
+// It changes front and size
+//int dequeue(struct Queue* queue)
+//struct Element dequeue(struct Queue* queue)
+void *dequeue(struct Queue* queue)
 {
-	if(queue == NULL) {
-		fprintf(stderr, "queue is null\n");
-		return -1;
-	}
+ struct Element item;
+ if (isEmpty(queue)) {
+  fprintf(stderr, "queue is empty\n");
+  return NULL;
+ }
 
-	if(queue->first != NULL && queue->size != 0)
-		return -1;
+ item = queue->array[queue->front];
+ queue->front = (queue->front + 1)%queue->capacity;
+ queue->size = queue->size - 1;
 
-	return 0;
+ return item.data;
 }
+
+// Function to get front of queue
+/*
+struct Element front(struct Queue* queue)
+{
+ if (isEmpty(queue))
+  return INT_MIN;
+ return queue->array[queue->front];
+}
+
+// Function to get rear of queue
+struct Element rear(struct Queue* queue)
+{
+ if (isEmpty(queue))
+  return INT_MIN;
+ return queue->array[queue->rear];
+}
+*/

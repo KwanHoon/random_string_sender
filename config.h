@@ -1,16 +1,14 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define DEFAULT_CONFIG_PATH
-
+#define DEFAULT_CFG_PATH "./config"
 
 struct cfg_info
 {
-	char *timestamp_fmt;
+	char timestamp_fmt[20];
 	size_t len;
-	size_t interval;
 	char http_server_ip[16];
-	short http_port;
+	short http_server_port;
 };
 
 int load_config(const char *path, struct cfg_info *cfg);

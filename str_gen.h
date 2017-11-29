@@ -5,10 +5,7 @@
 
 #include "config.h"
 
-#define STR_LEN 11
-#define TIME_LEN 30
-//#define TIME_FMT "%Y-%M-%D"
-//#define CHARSET "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define TIMESTAMP_LEN 100
 
 struct str_with_ts
 {
@@ -17,11 +14,13 @@ struct str_with_ts
 
 	char *tm_str;
 	size_t tm_len;
+	char tm_fmt[20];
 
 	char *rand_str;
 };
 
 int alloc_str_with_ts(struct str_with_ts *str_with_ts, struct cfg_info *cfg);
+int init_str_with_ts(struct str_with_ts *str_with_ts, struct cfg_info *cfg);
 int release_str_with_ts(struct str_with_ts *str_with_ts);
 
 int gen_rand_str(struct str_with_ts *str_with_ts);

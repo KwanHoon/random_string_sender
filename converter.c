@@ -6,6 +6,22 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+int init_converter(struct convert_t *converter, struct cfg_info *cfg)
+{
+	if(converter == NULL || cfg == NULL) {
+		fprintf(stderr, "init value for converter is null\n");
+		return -1;
+	}
+	
+	memcpy(converter->http_server_ip, cfg->http_server_ip, 16);
+	converter->http_server_port = cfg->http_server_port;
+
+	converter->queue = createQueue(1000);
+
+	return 0;
+}
+
+
 /* { 
  *    "string": "{random string}",
  *    "timestamp": "{timestamp}"
@@ -35,28 +51,6 @@ char *make_kv(char *key, size_t klen, char *value, size_t vlen)
 	return kv_buf;
 }
 
-/*
-char *make_json_obj(char *kv)
-{
-	char *json_obj = NULL;
-
-	if(kv == NULL) {
-		fprintf(stderr, "kv is null\n");
-		return NULL;
-	}
-	
-	json_obj = (char *)malloc(strlen(kv) + 3);
-	json_obj[0] = '{';
-	memcpy(json_obj, kv, strlen(kv));
-	json_obj[strlen(kv)] = '}';
-	json_obj[strlen(kv) + 1] = '\0';
-
-	fprintf(stderr, "[debug] json obj: {%s}\n", json_obj);
-	
-	return json_obj;
-}
-*/
-
 void *convert_json(void *arg)
 {
 	struct convert_t *json_str = (struct convert_t *)arg;
@@ -67,24 +61,24 @@ void *convert_json(void *arg)
 	char *tm_kv = NULL;
 	char total_json[1024];
 	char total_json_fmt[] = "{%s,%s}";
-	struct queue_node node;
+	//struct queue_node node;
+	struct Element elem;
 	struct str_with_ts *rand_str = NULL;
 
 	// http
 	char http_header[1024];
 	char http_body[1024];
-	char http_header_fmt[] = "POST / HTTP/1.1\r\n\
-							  Host: pigh\r\n\
-							  User-Agent: pigh\r\n\
-							  Accept: application/json\r\n\
-							  Accept-Language: en-us,en;q=0.5\r\n\
-							  Accept-Charset: utf-8\r\n\
-							  Connection: keep-alive\r\n\
-							  Cache-Control: no-cache\r\n\
-							  Content-Length: %lu\r\n\r\n";
+	char http_header_fmt[] = 
+	"GET / HTTP/1.1\r\n\
+	Host: pigh\r\n\
+	User-Agent: pigh\r\n\
+	Accept: application/json\r\n\
+	Accept-Language: en-us,en;q=0.5\r\n\
+	Accept-Charset: utf-8\r\n\
+	Connection: keep-alive\r\n\
+	Cache-Control: no-cache\r\n\
+	Content-Length: %lu\r\n\r\n";
 
-	char http_server_ip[] = "127.0.0.1";		//temp
-	short http_server_port = 8000;				//temp
 	int sock = 0;
 	struct sockaddr_in srv;
 
@@ -92,31 +86,36 @@ void *convert_json(void *arg)
 		fprintf(stderr, "json str is null\n");
 		return NULL;
 	}
-	//sprintf(http_header, http_header_fmt, http_server_ip); 
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
 		perror("Failed to create socket");
 		return NULL;
 	}
+	memset(&srv, '0', sizeof(srv));
 
-	srv.sin_addr.s_addr = inet_addr(http_server_ip);
+	srv.sin_addr.s_addr = inet_addr(json_str->http_server_ip);
+	//srv.sin_addr.s_addr = inet_addr("127.0.0.1");
 	srv.sin_family = AF_INET;
-	srv.sin_port = htons(http_server_port);
+	srv.sin_port = htons(json_str->http_server_port);
+	//srv.sin_port = htons(17250);
 
 	if(connect(sock, (struct sockaddr *)&srv, sizeof(srv)) < 0) {
 		perror("Failed to connect server");
+		fprintf(stderr, "ip: %s, port: %d\n", json_str->http_server_ip, json_str->http_server_port);
 		return NULL;
 	}
 
-	fprintf(stderr, "Connection Success [%s:%d]\n", http_server_ip, http_server_port);
+	fprintf(stderr, "  Connection Success [%s:%d]\n", 
+	  json_str->http_server_ip, json_str->http_server_port);
 
 	while(1) {
-		if(is_empty(json_str->queue) != 0) {
+		if(isEmpty(json_str->queue) != 0) {
 			memset(total_json, '\0', sizeof(total_json));	
 
-			node = dequeue(json_str->queue);
-			rand_str = (struct str_with_ts *)node.data;
+			if((rand_str = (struct str_with_ts *)dequeue(json_str->queue)) == NULL)
+			 continue;
+			//rand_str = (struct str_with_ts *)elem.data;
 
 			//fprintf(stderr, "[debug] str: %s, tm: %s\n", rand_str->str, rand_str->tm_str);
 			str_kv = make_kv(
@@ -130,7 +129,7 @@ void *convert_json(void *arg)
 			sprintf(total_json, total_json_fmt, str_kv, tm_kv);
 			fprintf(stderr, "[debug] json str: %s\n", total_json);	
 
-			memcpy(http_body, total_json, strlen(total_json));
+			//memcpy(http_body, total_json, strlen(total_json));
 
 			// send http message
 			sprintf(http_header, http_header_fmt, strlen(total_json));
@@ -141,6 +140,7 @@ void *convert_json(void *arg)
 				if(write(sock, total_json, strlen(total_json)) < 0) {
 					perror("Failed to send body");
 				}
+				fprintf(stderr, "send msg: %s%s\n", http_header, total_json); 
 			}
 
 			free(str_kv);
