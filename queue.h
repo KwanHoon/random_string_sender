@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <pthread.h>
 
 struct Element
 {
@@ -17,6 +18,7 @@ struct Queue
  unsigned capacity;
  //int* array;
  struct Element *array;
+ pthread_mutex_t mtx;
 };
 
 // function to create a queue of given capacity. 

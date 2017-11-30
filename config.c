@@ -34,21 +34,21 @@ int load_config(const char *path, struct cfg_info *cfg)
 		return -1;
 	}
 
-	memset(cfg->http_server_ip, '\0', sizeof(cfg->http_server_ip));
-	cfg->http_server_port = 0;
+	memset(cfg->host, '\0', sizeof(cfg->host));
+	cfg->port = 0;
 
 	while((read_len = getline(&line, &len, cfg_file)) != -1) {
 		fprintf(stderr, "[debug] cfg_line: %s\n", line);
-		if(strstr(line, "ip") != NULL) {
+		if(strstr(line, "host") != NULL) {
 			if((vcfg = strchr(line, '=')) != NULL) {
-				//memcpy(cfg->http_server_ip, vcfg + 1, strlen(vcfg + 1));
-				strcpy(cfg->http_server_ip, vcfg + 1);
-				//cfg->http_server_ip[strlen(cfg->http_server_ip)] = '\0';
+				//memcpy(cfg->host, vcfg + 1, strlen(vcfg + 1));
+				strcpy(cfg->host, vcfg + 1);
+				//cfg->host[strlen(cfg->host)] = '\0';
 			}
 		}
 		else if(strstr(line, "port") != NULL) {
 			if((vcfg = strchr(line, '=')) != NULL)
-				cfg->http_server_port = atoi(vcfg + 1);
+				cfg->port = atoi(vcfg + 1);
 		}
 		else if(strstr(line, "length") != NULL) {
 			if((vcfg = strchr(line, '=')) != NULL)
@@ -58,9 +58,13 @@ int load_config(const char *path, struct cfg_info *cfg)
 			if((vcfg = strchr(line, '=')) != NULL)
 				memcpy(cfg->timestamp_fmt, vcfg + 1, sizeof(cfg->timestamp_fmt));
 		}
+		else if(strstr(line, "interval") != NULL) {
+			if((vcfg = strchr(line, '=')) != NULL)
+				cfg->interval = atoi(vcfg + 1);
+		}
 	}
 
-	//fprintf(stderr, "[debug] http info %s:%d\n", cfg->http_server_ip, cfg->http_server_port);
+	//fprintf(stderr, "[debug] http info %s:%d\n", cfg->host, cfg->port);
 	//fprintf(stderr, "[debug] tm_fmt: %s\n", cfg->timestamp_fmt);
 
 	fclose(cfg_file);
@@ -68,27 +72,3 @@ int load_config(const char *path, struct cfg_info *cfg)
 		free(line);
 	return 0;
 }
-
-/*
-int parse_config(char *buf, size_t len, struct cfg_info *cfg)
-{
-	char line_buf[20];
-	size_t n = 0;
-
-	if(cfg == NULL) {
-		fprintf(stderr, "config is null\n");
-		return -1;
-	}
-
-	if(buf == NULL || len < 0) {
-		fprintf(stderr, "invalid buffer\n");
-		return -1;
-	}
-	
-	for(n = 0; n < 20; n++) {
-
-	}
-
-	return 0;
-}
-*/

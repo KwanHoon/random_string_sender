@@ -1,0 +1,555 @@
+Start main
+Load config
+[debug] cfg_line: [http]
+
+[debug] cfg_line: host=db.fun25.co.kr
+
+[debug] cfg_line: port=11704
+
+[debug] cfg_line: 
+
+[debug] cfg_line: [string]
+
+[debug] cfg_line: # random string lengh
+
+[debug] cfg_line: length=10
+
+[debug] cfg_line: # timestamp format
+
+[debug] cfg_line: timestamp_format=%c
+
+[debug] cfg_line: # unis is milliseconds
+
+[debug] cfg_line: interval=200
+
+Wait connection
+[debug] config host: db.fun25.co.kr
+[debug] host name: f1.fun25.co.kr
+IP: 211.239.124.233
+  Connection Success [db.fun25.co.kr:11704]
+Generate a random string.
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "HcdARZoWk","timestamp": "Thu Nov 30 21:23:43 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:13 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "HcdARZoWk","timestamp": "Thu Nov 30 21:23:43 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "KyhidDQsc","timestamp": "Thu Nov 30 21:23:43 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:13 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "KyhidDQsc","timestamp": "Thu Nov 30 21:23:43 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "dxRjMowfR","timestamp": "Thu Nov 30 21:23:43 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:13 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "dxRjMowfR","timestamp": "Thu Nov 30 21:23:43 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "XSJYbLDBe","timestamp": "Thu Nov 30 21:23:44 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:14 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "XSJYbLDBe","timestamp": "Thu Nov 30 21:23:44 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "fsaRcbYNe","timestamp": "Thu Nov 30 21:23:44 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:14 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "fsaRcbYNe","timestamp": "Thu Nov 30 21:23:44 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "CDYgGXXPK","timestamp": "Thu Nov 30 21:23:44 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:14 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "CDYgGXXPK","timestamp": "Thu Nov 30 21:23:44 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "lOrELLnmp","timestamp": "Thu Nov 30 21:23:44 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:14 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "lOrELLnmp","timestamp": "Thu Nov 30 21:23:44 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "APQFwKhop","timestamp": "Thu Nov 30 21:23:44 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:14 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "APQFwKhop","timestamp": "Thu Nov 30 21:23:44 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "KmcOqhNwN","timestamp": "Thu Nov 30 21:23:45 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:15 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "KmcOqhNwN","timestamp": "Thu Nov 30 21:23:45 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "KueWhSQMg","timestamp": "Thu Nov 30 21:23:45 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:15 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "KueWhSQMg","timestamp": "Thu Nov 30 21:23:45 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "BBUQcljjI","timestamp": "Thu Nov 30 21:23:45 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:15 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "BBUQcljjI","timestamp": "Thu Nov 30 21:23:45 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "vSWmDKQTb","timestamp": "Thu Nov 30 21:23:45 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:15 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "vSWmDKQTb","timestamp": "Thu Nov 30 21:23:45 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "XixmvtrrB","timestamp": "Thu Nov 30 21:23:46 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:16 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "XixmvtrrB","timestamp": "Thu Nov 30 21:23:46 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "LJPtNSnfw","timestamp": "Thu Nov 30 21:23:46 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:16 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "LJPtNSnfw","timestamp": "Thu Nov 30 21:23:46 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "zQFJmaFaD","timestamp": "Thu Nov 30 21:23:46 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:16 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "zQFJmaFaD","timestamp": "Thu Nov 30 21:23:46 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "RRwSOFSbC","timestamp": "Thu Nov 30 21:23:46 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:16 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "RRwSOFSbC","timestamp": "Thu Nov 30 21:23:46 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "NUvQhfFBS","timestamp": "Thu Nov 30 21:23:46 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:16 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "NUvQhfFBS","timestamp": "Thu Nov 30 21:23:46 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "aqXwPqcaC","timestamp": "Thu Nov 30 21:23:47 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:17 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "aqXwPqcaC","timestamp": "Thu Nov 30 21:23:47 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "EhChZVfRK","timestamp": "Thu Nov 30 21:23:47 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:17 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "EhChZVfRK","timestamp": "Thu Nov 30 21:23:47 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "mlnOZJkPQ","timestamp": "Thu Nov 30 21:23:47 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:17 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "mlnOZJkPQ","timestamp": "Thu Nov 30 21:23:47 2017"}
+0
+
+
+  enqueue~~
+dequeue~~
+ [275]send: 
+POST / HTTP/1.1
+Host: f1.fun25.co.kr:11704
+User-Agent: sender
+Accept: text/plain
+Accept-Language: en-us,en;q=0.5
+Accept-Charset: utf-8
+Connection: keep-alive
+Cache-Control: no-cache
+Content-Length: 63
+
+{"string": "pXrJXkitZ","timestamp": "Thu Nov 30 21:23:47 2017"}
+[182]recv: 
+HTTP/1.1 200 OK
+Date: Wed, 03 Jan 2018 08:02:17 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+3f
+{"string": "pXrJXkitZ","timestamp": "Thu Nov 30 21:23:47 2017"}
+0
+
+

@@ -12,8 +12,12 @@ struct convert_t
 	char *str;
 	size_t len;
 
-	char http_server_ip[16];
-	short http_server_port;
+	char host[1024];
+	short port;
+	int is_connected;
+
+	//pthread_mutex_t sync_mutex;
+	//pthread_cond_t sync_cond;
 };
 
 // thread function

@@ -13,13 +13,14 @@ int init_str_with_ts(struct str_with_ts *str_with_ts, struct cfg_info *cfg)
 		return -1;
 	}
 
+	cfg->timestamp_fmt[strlen(cfg->timestamp_fmt)-1] = '\0';
 	str_with_ts->len = cfg->len;
 	str_with_ts->tm_len = TIMESTAMP_LEN;
-	memcpy(str_with_ts->tm_fmt, cfg->timestamp_fmt, sizeof(str_with_ts->tm_fmt));
+	//memcpy(str_with_ts->tm_fmt, cfg->timestamp_fmt, sizeof(str_with_ts->tm_fmt));
+	strcpy(str_with_ts->tm_fmt, cfg->timestamp_fmt);
+	str_with_ts->tm_fmt[strlen(cfg->timestamp_fmt)] = '\0';
 
 	total_len = str_with_ts->len + 1 + str_with_ts->tm_len + 1;
-
-	fprintf(stderr, "  total len: %d\n", total_len);
 
 	str_with_ts->rand_str = (char *)malloc(total_len);
 	str_with_ts->str =(char *)malloc(str_with_ts->len);
@@ -98,7 +99,7 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 	
 	// copy random string & timestamp
 	sprintf(str_with_ts->rand_str, rand_str_fmt, str_with_ts->str, str_with_ts->tm_str);
-	fprintf(stderr, "[debug] total string: {%s}, len: {%lu}\n", str_with_ts->rand_str, total_len);	
+	//fprintf(stderr, "[debug] total string: {%s}, len: {%lu}\n", str_with_ts->rand_str, total_len);	
 	//
 	return 0;	
 }

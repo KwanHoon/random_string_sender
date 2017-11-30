@@ -7,8 +7,9 @@ struct cfg_info
 {
 	char timestamp_fmt[20];
 	size_t len;
-	char http_server_ip[16];
-	short http_server_port;
+	char host[1024];
+	short port;
+	size_t interval;
 };
 
 int load_config(const char *path, struct cfg_info *cfg);
