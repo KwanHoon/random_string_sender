@@ -1,15 +1,11 @@
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <pthread.h>
 
 #include "converter.h"
 
 int main(int argc, char *argv[])
 {
 	struct cfg_info cfg;
-	struct str_with_ts rand_str;
+	struct str_with_tm_t rand_str;
 	struct convert_t converter;
 	struct Element elem;
 
@@ -27,9 +23,9 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	micro_interval = cfg.interval * 1000;
+	micro_interval = cfg.str_int * 1000;
 	
-	if(init_str_with_ts(&rand_str, &cfg) != 0) {
+	if(init_str_with_tm(&rand_str, &cfg) != 0) {
 		fprintf(stderr, "Failed to init string\n");
 		return -1;
 	}
@@ -39,27 +35,35 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	//pthread_mutex_lock(&converter.sync_mutex);
+	//pthread_mutex_lock(&converter.conn_mutex);
 	cvt_thr_id = pthread_create(&convert_thread, NULL, convert_json, (void *)&converter);
 		
 	// wait for http connection
-	//pthread_cond_wait(&converter.sync_cond, &converter.sync_mutex);
+	//pthread_cond_wait(&converter.conn_cond, &converter.conn_mutex);
+	//pthread_mutex_unlock(&converter.conn_mutex);
 
-	// start to make random string
+	// TODO. temp, should be edited!
 	fprintf(stderr, "Wait connection\n");
 	while(!converter.is_connected);
-	fprintf(stderr, "Generate a random string.\n");	
-	while(!gen_rand_str(&rand_str)) {
+
+	// start to make random string
+	fprintf(stderr, "Start to generate a random string.\n");	
+	while(!make_rand_str(&rand_str)) {
 		elem.data = &rand_str;
 		usleep(micro_interval);
-		//fprintf(stderr, "   rand_str: %s\n", rand_str.rand_str);
-		//pthread_mutex_lock(&converter.queue->mtx);
-		if(enqueue(converter.queue, elem) != 0) {
-			//fprintf(stderr, "Failed to enqueue\n");
-		}	
-		//pthread_mutex_unlock(&converter.queue->mtx);
+
+		pthread_mutex_lock(&converter.sync_mutex);
+		if(enqueue(converter.queue, elem) == 0)
+			pthread_cond_signal(&converter.sync_cond);
+		else	
+			fprintf(stderr, "Failed to enqueue\n");
+		pthread_mutex_unlock(&converter.sync_mutex);
 	}
 	fprintf(stderr, "End to make random string\n");
+
+	release_str_with_tm(&rand_str);
+	release_converter(&converter);
+
 
 	//pthread_mutex_unlock(&converter.sync_mutex);	
 	pthread_join(convert_thread, (void **)&status);

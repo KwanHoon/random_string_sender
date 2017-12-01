@@ -9,10 +9,11 @@ struct cfg_info
 	size_t len;
 	char host[1024];
 	short port;
-	size_t interval;
+	size_t str_int;
+	size_t send_int_time;
+	size_t send_int_count;
 };
 
 int load_config(const char *path, struct cfg_info *cfg);
-int parse_config(char *buf, size_t len, struct cfg_info *cfg);
 
 #endif

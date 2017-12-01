@@ -1,5 +1,3 @@
-#include "converter.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +6,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 
+#include "converter.h"
+
 int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 {
 	if(converter == NULL || cfg == NULL) {
@@ -15,19 +15,53 @@ int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 		return -1;
 	}
 	
-	memcpy(converter->host, cfg->host, strlen(cfg->host));
+	strcpy(converter->host, cfg->host);
 	converter->host[strlen(cfg->host) - 1] = '\0';
 	converter->port = cfg->port;
 
-	converter->queue = createQueue(5000);
+	/*
+	converter->int_time = cfg->send_int_time;
+	converter->int_count = cfg->send_int_count;
+
+	if(converter->int_time < 0) {
+		fprintf(stderr, "Invalid interval time. Should be set larger than 0");
+		return -1;
+	}
+
+	if(converter->int_count < 1) {
+		fprintf(stderr, "Invalid interval count. Should be set larger than 1");
+		return -1;
+	}
+	*/
+
+	converter->queue = create_queue(MAX_QUEUE_SIZE);
 
 	converter->is_connected = 0;
-	//pthread_mutex_init(&converter->sync_mutex, NULL);
-	//pthread_cond_init(&converter->sync_cond, NULL);
+	pthread_mutex_init(&converter->conn_mutex, NULL);
+	pthread_cond_init(&converter->conn_cond, NULL);
+	
+	pthread_mutex_init(&converter->sync_mutex, NULL);
+	pthread_cond_init(&converter->sync_cond, NULL);
 
 	return 0;
 }
 
+int release_converter(struct convert_t *converter)
+{
+	if(converter == NULL) {
+		fprintf(stderr, "converter is null\n");
+		return -1;
+	}
+
+	release_queue(converter->queue);
+
+	pthread_mutex_destroy(&converter->conn_mutex);
+	pthread_cond_destroy(&converter->conn_cond);
+	pthread_mutex_destroy(&converter->sync_mutex);
+	pthread_cond_destroy(&converter->sync_cond);
+
+	return 0;
+}
 
 /* { 
  *    "string": "{random string}",
@@ -38,14 +72,14 @@ int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 char *make_kv(char *key, size_t klen, char *value, size_t vlen)
 {
 	char *kv_buf = NULL;
-	char *kv_fmt = "\"%s\": \"%s\"";
+	char *kv_fmt = "\"%s\":\"%s\"";
 
 	if(key == NULL || value == NULL) {
 		fprintf(stderr, "key or value is null\n");
 		return NULL;	
 	}
 
-	kv_buf = (char *)malloc(50);
+	kv_buf = (char *)malloc(klen + vlen + 3);
 	if(kv_buf == NULL) {
 		perror("Failed alloc key value buffer");
 		return NULL;
@@ -60,7 +94,7 @@ char *make_kv(char *key, size_t klen, char *value, size_t vlen)
 
 void *convert_json(void *arg)
 {
-	struct convert_t *json_str = (struct convert_t *)arg;
+	struct convert_t *converter = (struct convert_t *)arg;
 	char json_str_key[] = "string";
 	char json_tm_key[] ="timestamp";
 
@@ -68,9 +102,8 @@ void *convert_json(void *arg)
 	char *tm_kv = NULL;
 	char total_json[1024];
 	char total_json_fmt[] = "{%s,%s}";
-	//struct queue_node node;
 	struct Element elem;
-	struct str_with_ts *rand_str = NULL;
+	struct str_with_tm_t *rand_str = NULL;
 
 	// http
 	char http_header[1024];
@@ -97,7 +130,7 @@ void *convert_json(void *arg)
 	long *add = NULL;
 	char host_ip[16];
 
-	if(json_str == NULL) {
+	if(converter == NULL) {
 		fprintf(stderr, "json str is null\n");
 		return NULL;
 	}
@@ -109,14 +142,14 @@ void *convert_json(void *arg)
 	}
 	memset(&srv, '0', sizeof(srv));
 
-	fprintf(stderr, "[debug] config host: %s\n", json_str->host);
-	ent = gethostbyname(json_str->host);
+	fprintf(stderr, "[debug] config host: %s\n", converter->host);
+	ent = gethostbyname(converter->host);
 	if(ent == NULL) {
 		perror("Failed to get host name");
 		return NULL;
 	}
 
-	//pthread_mutex_lock(&json_str->sync_mutex);
+	//pthread_mutex_lock(&converter->sync_mutex);
 
 	fprintf(stderr, "[debug] host name: %s\n", ent->h_name);
 	for(h = 0; ent->h_addr_list[h]; h++) {
@@ -127,60 +160,35 @@ void *convert_json(void *arg)
 	
 	srv.sin_addr.s_addr = inet_addr(host_ip);
 	srv.sin_family = AF_INET;
-	srv.sin_port = htons(json_str->port);
+	srv.sin_port = htons(converter->port);
 
 	if(connect(sock, (struct sockaddr *)&srv, sizeof(srv)) < 0) {
 		perror("Failed to connect server");
 		return NULL;
 	}
 
-	fprintf(stderr, "  Connection Success [%s:%d]\n", json_str->host, json_str->port);
-	json_str->is_connected = 1;
-	//pthread_cond_signal(&json_str->sync_cond);
-	//fprintf(stderr, " singal to start make string\n");
-	//pthread_mutex_unlock(&json_str->sync_mutex);
-	//sleep(1);
+	fprintf(stderr, "Connection Success [%s:%d]\n", converter->host, converter->port);
+	converter->is_connected = 1;
+	
+	//pthread_cond_signal(&converter->sync_cond);
+	//pthread_mutex_unlock(&converter->sync_mutex);
+
 	while(1) {
-		//pthread_mutex_lock(&json_str->queue->mtx);
-		//fprintf(stderr, "a\n");
-		//if(isEmpty(json_str->queue) != 0) {
-		if((rand_str = (struct str_with_ts *)dequeue(json_str->queue)) != NULL ) {
+		pthread_mutex_lock(&converter->sync_mutex);
+		pthread_cond_wait(&converter->sync_cond, &converter->sync_mutex);
+		if((rand_str = (struct str_with_tm_t *)dequeue(converter->queue)) != NULL ) {
+			pthread_mutex_unlock(&converter->sync_mutex);
 			memset(total_json, '\0', sizeof(total_json));	
 			memset(recv_buf, 0x00, sizeof(recv_buf));
 
-			//fprintf(stderr, "get string from queue\n");
-			//rand_str = (struct str_with_ts *)dequeue(json_str->queue);
-			//pthread_mutex_unlock(&json_str->queue->mtx);
-			//if(rand_str == NULL) {
-			 //fprintf(stderr, "bb\n");
-			 //getchar();
-			 //continue;
-			//}
-
-			/*
-			if((rand_str = (struct str_with_ts *)dequeue(json_str->queue)) == NULL) {
-				//fprintf(stderr, "dequque is null\n");	
-			 continue;
-			}
-			*/
-			//rand_str = (struct str_with_ts *)elem.data;
-
-			//fprintf(stderr, "[debug] str: %s, tm: %s\n", rand_str->str, rand_str->tm_str);
-			str_kv = make_kv(
-					json_str_key, sizeof(json_str_key) - 1,
-					rand_str->str, rand_str->len);
-			
-			tm_kv = make_kv(
-					json_tm_key, sizeof(json_tm_key) - 1,
-					rand_str->tm_str, rand_str->tm_len);
+			str_kv = make_kv(json_str_key, strlen(json_str_key), rand_str->str, strlen(rand_str->str));
+			tm_kv = make_kv(json_tm_key, strlen(json_tm_key), rand_str->tm_str, strlen(rand_str->tm_str));
 
 			sprintf(total_json, total_json_fmt, str_kv, tm_kv);
 			//fprintf(stderr, "[debug] json str: %s\n", total_json);	
 
-			//memcpy(http_body, total_json, strlen(total_json));
-
 			// send http message
-			sprintf(http_header, http_header_fmt, ent->h_name, json_str->port, strlen(total_json));
+			sprintf(http_header, http_header_fmt, ent->h_name, converter->port, strlen(total_json));
 			if(write(sock, http_header, strlen(http_header), 0) < 0) {
 				perror("Failed to send header");
 			}
@@ -188,21 +196,21 @@ void *convert_json(void *arg)
 				if(write(sock, total_json, strlen(total_json)) < 0) {
 					perror("Failed to send body");
 				}
-				fprintf(stderr, "[%lu]send: \n%s%s\n",strlen(http_header) + strlen(total_json), http_header, total_json); 
+				fprintf(stderr, "[%lu]send: \n%s%s\n\n",
+				  strlen(http_header) + strlen(total_json), http_header, total_json); 
 			}
 
 			if((recv_len = read(sock, recv_buf, sizeof(recv_buf))) < 0 ) {
 				perror("Failed to recv");
 			}
 
-			fprintf(stderr, "[%lu]recv: \n%s\n",recv_len,  recv_buf);
+			fprintf(stderr, "[%lu]recv: \n%s\n\n",recv_len, recv_buf);
 
 			free(str_kv);
 			free(tm_kv);
 		}
 		else {
-			//fprintf(stderr, "size: %d\n", json_str->queue->size);
-			//fprintf(stderr, "      empty\n");
+			pthread_mutex_unlock(&converter->sync_mutex);
 		}
 	}
 

@@ -1,11 +1,14 @@
 [http]
 host=db.fun25.co.kr
 port=11704
+# unit is milliseconds
+interval_time=0
+interval_count=1
 
 [string]
 # random string lengh
-length=10
+length=50
 # timestamp format
 timestamp_format=%c
 # unis is milliseconds
-interval=200
+interval=100
