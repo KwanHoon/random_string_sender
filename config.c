@@ -8,6 +8,7 @@ int load_config(const char *path, struct cfg_info *cfg)
 {
 	int cfg_fd = 0;
 	char cfg_buf[1024];	
+	ssize_t read_len = 0;
 
 	// check config file path
 	if(path == NULL) {
@@ -23,8 +24,6 @@ int load_config(const char *path, struct cfg_info *cfg)
 	// config file open & read
 	cfg_fd = open(path, O_RDONLY);
 	if(cfg_fd != 0) {
-		ssize_t read_len = 0;
-
 		read_len = read(cfg_fd, cfg_buf, 1024);
 		if(read_len < 0) {
 			perror("Error on read config file");
