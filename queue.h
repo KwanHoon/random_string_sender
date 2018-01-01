@@ -2,6 +2,7 @@
 #define QUEUE_H_
 
 #include <stdlib.h>		// malloc 
+#include <pthread.h>
 
 struct queue_node
 {
@@ -14,8 +15,9 @@ struct queue
 	struct queue_node *first;
 	struct queue_node *last;
 
-	//struct queue_node **arr;
-	//size_t size;
+	size_t size;
+
+	pthread_mutex_t mtx;
 };
 
 
@@ -24,7 +26,7 @@ int release_queue(struct queue *queue);
 
 //int enqueue(struct queue *queue, struct queue_node *node);
 int enqueue(struct queue *queue, void *data);
-struct queue_node *dequeue(struct queue *queue);
+struct queue_node dequeue(struct queue *queue);
 
 int is_empty(struct queue *queue);
 

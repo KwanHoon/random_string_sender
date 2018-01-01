@@ -76,7 +76,7 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 	t = time(NULL);
 	timestamp = localtime(&t);
 	strftime(str_with_ts->tm_str, str_with_ts->tm_len, "%c", timestamp);
-	fprintf(stderr, "[debug] timestamp: {%s}\n", str_with_ts->tm_str);
+	//fprintf(stderr, "[debug] timestamp: {%s}\n", str_with_ts->tm_str);
 	
 	if(str_with_ts->str) {
 		for(size_t n = 0; n < str_with_ts->len; n++) {
@@ -84,8 +84,7 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 			str_with_ts->str[n] = charset[key];
 		}
 	}
-	fprintf(stderr, "[debug] random string: {%s}\n", str_with_ts->str);
-	//fprintf(stderr, "[debug] random string2: {%s}\n", str_with_ts->str);
+	//fprintf(stderr, "[debug] random string: {%s}\n", str_with_ts->str);
 	
 	// copy random string & timestamp
 	memcpy(str_with_ts->rand_str, str_with_ts->str, str_with_ts->len);
@@ -93,12 +92,15 @@ int gen_rand_str(struct str_with_ts *str_with_ts)
 	memcpy(str_with_ts->rand_str + str_with_ts->len + 2, str_with_ts->tm_str, str_with_ts->tm_len);
 	str_with_ts->rand_str[total_len] = '\0';
 
-	//fprintf(stderr, "[debug] total string: {%s}, len: {%d}\n", str_with_ts->str, total_len);
+	//fprintf(stderr, "[debug] total string: {%s}, len: {%lu}\n", str_with_ts->rand_str, total_len);
 
+	/*
+	fprintf(stderr, "[debug]");
 	for(size_t i = 0; i < total_len; i++) {
 		fprintf(stderr, "%c", str_with_ts->rand_str[i]);
 	}
 	fprintf(stderr, "\n");
+	*/
 		
 	return 0;	
 }
