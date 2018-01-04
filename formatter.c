@@ -29,23 +29,57 @@ char *make_kv(const char *key, size_t klen, const char *value, size_t vlen)
 
 char *make_array(size_t count, ...)
 {
+	int i = 0;
+	char *result_str = NULL;
+	char *str = NULL;
+	char *tmp = NULL;
 	char *arr_fmt = "[%s]";
+	size_t len = 0;
+	size_t total_len = 0;
 	va_list args;
 
+	va_start(args, count);
+	for(i = 0; i < count; i++) {
+		str = va_arg(args, char *);
+		len = strlen(str);
+		total_len += len;
+	}
+	va_end(args);
 
+	tmp = (char *)malloc(total_len + count);
+	if(tmp == NULL) {
+		fprintf(stderr, "Failed to alloc string memory\n");
+		return NULL;
+	}
+
+	va_start(args, count);
+	for(i = 0; i < count; i++) {
+		str = va_arg(args, char *);
+		strcat(tmp, str);
+		tmp[strlen(str)] = ',';
+	}
+	tmp[total_len + count] = '\0';
+
+	result_str = (char *)malloc(total_len + count + 2);
+	if(result_str == NULL) {
+		fprintf(stderr, "Failed to alloc string memory2\n");
+		return NULL;
+	}
+	sprintf(result_str, arr_fmt, tmp);
+	free(tmp);
+
+	return result_str;
 }
 
 char *make_obj(size_t count, ...)
 {
 	int i = 0;
 	char *result_str = NULL;
-	char *obj_str = NULL;
-	char *kv_str = NULL;
 	char *str = NULL;
 	char *tmp = NULL;
+	char *obj_fmt = "{%s}";
 	size_t len = 0;
 	size_t total_len = 0;
-	char *obj_fmt = "{%s}";
 	va_list args;
 
 	// to get length of all strings
@@ -57,7 +91,6 @@ char *make_obj(size_t count, ...)
 	}
 	va_end(args);
 
-	fprintf(stderr, "total len: %lu\n", total_len);
 	tmp = (char *)malloc(total_len + count);	
 	if(tmp == NULL) {
 		fprintf(stderr, "Failed to alloc string memory\n");
@@ -81,7 +114,7 @@ char *make_obj(size_t count, ...)
 	sprintf(result_str, obj_fmt, tmp);
 	free(tmp);
 
-	//fprintf(stderr, "[debug] result: %s\n", result_str);
+	fprintf(stderr, "[debug] result: %s\n", result_str);
 
 	return result_str;
 }

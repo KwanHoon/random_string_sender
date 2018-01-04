@@ -2,7 +2,6 @@
 #define FORMATTER_H_
 #include <stdarg.h>
 
-
 /* 
  * "key":"value"
  */
