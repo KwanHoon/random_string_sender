@@ -1,5 +1,5 @@
 CC = gcc
-OBJS = config.o queue.o strgen.o converter.o main.o
+OBJS = config.o queue.o strgen.o converter.o formatter.o main.o
 INC = ./
 TARGET = rand_str_sender
 LDFLAGS = -lpthread

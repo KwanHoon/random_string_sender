@@ -18,8 +18,7 @@ int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 	strcpy(converter->host, cfg->host);
 	converter->host[strlen(cfg->host) - 1] = '\0';
 	converter->port = cfg->port;
-
-	/*
+	
 	converter->int_time = cfg->send_int_time;
 	converter->int_count = cfg->send_int_count;
 
@@ -32,7 +31,6 @@ int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 		fprintf(stderr, "Invalid interval count. Should be set larger than 1");
 		return -1;
 	}
-	*/
 
 	converter->queue = create_queue(MAX_QUEUE_SIZE);
 
@@ -61,35 +59,6 @@ int release_converter(struct convert_t *converter)
 	pthread_cond_destroy(&converter->sync_cond);
 
 	return 0;
-}
-
-/* { 
- *    "string": "{random string}",
- *    "timestamp": "{timestamp}"
- * }
- */
-
-char *make_kv(char *key, size_t klen, char *value, size_t vlen)
-{
-	char *kv_buf = NULL;
-	char *kv_fmt = "\"%s\":\"%s\"";
-
-	if(key == NULL || value == NULL) {
-		fprintf(stderr, "key or value is null\n");
-		return NULL;	
-	}
-
-	kv_buf = (char *)malloc(klen + vlen + 3);
-	if(kv_buf == NULL) {
-		perror("Failed alloc key value buffer");
-		return NULL;
-
-	}
-	sprintf(kv_buf, kv_fmt, key, value);
-
-	//fprintf(stderr, "[debug] key: value {%s}\n", kv_buf);
-
-	return kv_buf;
 }
 
 void *convert_json(void *arg)
