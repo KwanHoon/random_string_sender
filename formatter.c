@@ -4,16 +4,20 @@
 
 #include "formatter.h"
 
-char *make_kv(const char *key, size_t klen, const char *value, size_t vlen)
+char *make_kv(const char *key, const char *value)
 {
 	char *kv_buf = NULL;
 	char *kv_fmt = "\"%s\":\"%s\"";
+	size_t klen = 0;
+	size_t vlen = 0;
 
 	if(key == NULL || value == NULL) {
 		fprintf(stderr, "key or value is null\n");
 		return NULL;	
 	}
 
+	klen = strlen(key);
+	vlen = strlen(value);
 	kv_buf = (char *)malloc(klen + vlen + 5);
 	if(kv_buf == NULL) {
 		perror("Failed alloc key value buffer");
@@ -27,58 +31,16 @@ char *make_kv(const char *key, size_t klen, const char *value, size_t vlen)
 	return kv_buf;
 }
 
-char *make_array(size_t count, ...)
-{
-	int i = 0;
-	char *result_str = NULL;
-	char *str = NULL;
-	char *tmp = NULL;
-	char *arr_fmt = "[%s]";
-	size_t len = 0;
-	size_t total_len = 0;
-	va_list args;
-
-	va_start(args, count);
-	for(i = 0; i < count; i++) {
-		str = va_arg(args, char *);
-		len = strlen(str);
-		total_len += len;
-	}
-	va_end(args);
-
-	tmp = (char *)malloc(total_len + count);
-	if(tmp == NULL) {
-		fprintf(stderr, "Failed to alloc string memory\n");
-		return NULL;
-	}
-
-	va_start(args, count);
-	for(i = 0; i < count; i++) {
-		str = va_arg(args, char *);
-		strcat(tmp, str);
-		tmp[strlen(str)] = ',';
-	}
-	tmp[total_len + count] = '\0';
-
-	result_str = (char *)malloc(total_len + count + 2);
-	if(result_str == NULL) {
-		fprintf(stderr, "Failed to alloc string memory2\n");
-		return NULL;
-	}
-	sprintf(result_str, arr_fmt, tmp);
-	free(tmp);
-
-	return result_str;
-}
-
-char *make_obj(size_t count, ...)
+char *make_json_msg(enum jsontype type, size_t count, ...)
 {
 	int i = 0;
 	char *result_str = NULL;
 	char *str = NULL;
 	char *tmp = NULL;
 	char *obj_fmt = "{%s}";
+	char *arr_fmt = "[%s]";
 	size_t len = 0;
+	size_t tmp_len = 0;
 	size_t total_len = 0;
 	va_list args;
 
@@ -100,21 +62,45 @@ char *make_obj(size_t count, ...)
 	va_start(args, count);
 	for(i = 0; i < count; i++) {
 		str = va_arg(args, char *);
-		strcat(tmp, str);
-		tmp[strlen(str)] = ',';
-		//fprintf(stderr, "[debug] str: %s\n", tmp);
+		strncat(tmp, str, strlen(str));
+		tmp_len += strlen(str);
+		if(tmp_len > total_len + count) {
+			fprintf(stderr, "Invalid arguments count or string length\n");
+			if(tmp)
+				free(tmp);
+			return NULL;
+		}
+		tmp[tmp_len++] = ',';
 	}
-	tmp[total_len + count] = '\0';
+	va_end(args);
+	tmp[tmp_len - 1] = '\0';
 
 	result_str = (char *)malloc(total_len + count + 2);
 	if(result_str == NULL) {
 		fprintf(stderr, "Failed to alloc string memory2\n");
+		if(tmp)
+			free(tmp);
 		return NULL;
 	}
-	sprintf(result_str, obj_fmt, tmp);
-	free(tmp);
 
-	fprintf(stderr, "[debug] result: %s\n", result_str);
+	if(type == json_obj)
+		sprintf(result_str, obj_fmt, tmp);
+	else if(type == json_arr)
+		sprintf(result_str, arr_fmt, tmp);
+	else {
+		fprintf(stderr, "Invalid json type\n");
+		if(tmp)
+			free(tmp);
+		if(result_str)
+			free(result_str);
+		return NULL;
+	}
+
+	if(tmp)
+		free(tmp);
+
+	//fprintf(stderr, "[debug] result: %s\n", result_str);
 
 	return result_str;
+
 }

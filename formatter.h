@@ -2,19 +2,26 @@
 #define FORMATTER_H_
 #include <stdarg.h>
 
+enum jsontype
+{
+	json_arr,
+	json_obj
+};
+
 /* 
  * "key":"value"
  */
-char *make_kv(const char *key, size_t klen, const char*value, size_t vlen);
+char *make_kv(const char *key, const char*value);
 
-/*
+/* 
+ *  json array format
  * [ {"key1":"value1"},{"key2":"value2"}, ... ]
  */
-char *make_array(size_t count, ...);
 
-/*
+/* 
+ *  json object format
  * { "key1":"value1","key2":"value2", ... }
  */
-char *make_obj(size_t count, ...);
+char *make_json_msg(enum jsontype type, size_t count, ...);
 
 #endif
