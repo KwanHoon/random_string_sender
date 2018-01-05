@@ -85,6 +85,8 @@ int make_rand_str(struct str_with_tm_t *str_with_tm)
 	memset(str_with_tm->tm_str, '\0', str_with_tm->tm_len);
 
 	// get local current time
+	timestamp = str_with_tm->timestamp;
+
 	t = time(NULL);
 	timestamp = localtime(&t);
 	if(strftime(str_with_tm->tm_str, str_with_tm->tm_len, str_with_tm->tm_fmt, timestamp) == 0) {

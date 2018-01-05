@@ -7,10 +7,14 @@ int main(int argc, char *argv[])
 	struct cfg_info cfg;
 	struct str_with_tm_t rand_str;
 	struct convert_t converter;
+	struct sender_t sender;
 	struct Element elem;
 
 	pthread_t convert_thread;
+	pthread_t send_thread;
+
 	int cvt_thr_id = 0;
+	int snd_thr_id = 0;
 	int status = 0;
 
 	size_t micro_interval = 0;
@@ -35,16 +39,23 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	//pthread_mutex_lock(&converter.conn_mutex);
-	cvt_thr_id = pthread_create(&convert_thread, NULL, convert_json, (void *)&converter);
+	if(init_sender(&sender, &cfg) != 0) {
+		fprintf(stderr, "Failed to init sender\n");
+		return -1;
+	}
+
+	if(init_send_sync(&converter, &sender) != 0) {
+		fprintf(stderr, "Failed to init sync\n");
+		return -1;
+	}
+
+	cvt_thr_id = pthread_create(&convert_thread, NULL, convert_func, (void *)&converter);
+	snd_thr_id = pthread_create(&send_thread, NULL, send_func, (void *)&sender);
 		
-	// wait for http connection
-	//pthread_cond_wait(&converter.conn_cond, &converter.conn_mutex);
-	//pthread_mutex_unlock(&converter.conn_mutex);
 
 	// TODO. temp, should be edited!
 	fprintf(stderr, "Wait connection\n");
-	while(!converter.is_connected);
+	//while(!converter.is_connected);
 
 	// start to make random string
 	fprintf(stderr, "Start to generate a random string.\n");	
@@ -67,6 +78,7 @@ int main(int argc, char *argv[])
 
 	//pthread_mutex_unlock(&converter.sync_mutex);	
 	pthread_join(convert_thread, (void **)&status);
+	pthread_join(send_thread, (void **)&status);
 
 	return 0;
 }
