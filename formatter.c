@@ -4,31 +4,29 @@
 
 #include "formatter.h"
 
-char *make_kv(const char *key, const char *value)
+int make_kv(char *pair, const char *key, const char *value)
 {
-	char *kv_buf = NULL;
 	char *kv_fmt = "\"%s\":\"%s\"";
 	size_t klen = 0;
 	size_t vlen = 0;
 
 	if(key == NULL || value == NULL) {
 		fprintf(stderr, "key or value is null\n");
-		return NULL;	
+		return -1;	
+	}
+	if(pair == NULL) {
+		fprintf(stderr, "key-value pair buffer is null\n");
+		return -1;
 	}
 
 	klen = strlen(key);
 	vlen = strlen(value);
-	kv_buf = (char *)malloc(klen + vlen + 5);
-	if(kv_buf == NULL) {
-		perror("Failed alloc key value buffer");
-		return NULL;
 
-	}
-	sprintf(kv_buf, kv_fmt, key, value);
+	sprintf(pair, kv_fmt, key, value);
 
 	//fprintf(stderr, "[debug] key:value {%s}\n", kv_buf);
 
-	return kv_buf;
+	return 0;
 }
 
 char *make_json_msg(enum jsontype type, size_t count, ...)
@@ -103,4 +101,10 @@ char *make_json_msg(enum jsontype type, size_t count, ...)
 
 	return result_str;
 
+}
+
+void release_json_msg(char *json_msg)
+{
+	if(json_msg)
+		free(json_msg);
 }

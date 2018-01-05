@@ -11,7 +11,7 @@ enum jsontype
 /* 
  * "key":"value"
  */
-char *make_kv(const char *key, const char*value);
+int make_kv(char *pair, const char *key, const char*value);
 
 /* 
  *  json array format
@@ -23,5 +23,7 @@ char *make_kv(const char *key, const char*value);
  * { "key1":"value1","key2":"value2", ... }
  */
 char *make_json_msg(enum jsontype type, size_t count, ...);
+
+void release_json_msg(char *json_msg);
 
 #endif
