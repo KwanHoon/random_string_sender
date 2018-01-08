@@ -24,8 +24,13 @@ int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 		return -1;
 	}
 
-	if(converter->int_count < 1) {
-		fprintf(stderr, "Invalid interval count. Should be set larger than 1");
+	if(converter->int_count < 0) {
+		fprintf(stderr, "Invalid interval count. Should be set larger than 0");
+		return -1;
+	}
+
+	if(converter->int_size > 0 && converter->int_time > 0) {
+		fpritnf(stderr, "You only have to choose between the two of interval count or interval time\n");
 		return -1;
 	}
 
@@ -88,32 +93,8 @@ void *convert_json(void *arg)
 		pthread_cond_wait(&converter->sync_cond, &converter->sync_mutex);
 		if((rand_str = (struct str_with_tm_t *)dequeue(converter->queue)) != NULL ) {
 			pthread_mutex_unlock(&converter->sync_mutex);
-
 			
-
-			/*
-			memset(total_json, '\0', sizeof(total_json));	
-			memset(recv_buf, 0x00, sizeof(recv_buf));
-
-			// send http message
-			sprintf(http_header, http_header_fmt, ent->h_name, converter->port, strlen(total_json));
-			if(write(sock, http_header, strlen(http_header), 0) < 0) {
-				perror("Failed to send header");
-			}
-			else {
-				if(write(sock, total_json, strlen(total_json)) < 0) {
-					perror("Failed to send body");
-				}
-				fprintf(stderr, "[%lu]send: \n%s%s\n\n",
-				  strlen(http_header) + strlen(total_json), http_header, total_json); 
-			}
-
-			if((recv_len = read(sock, recv_buf, sizeof(recv_buf))) < 0 ) {
-				perror("Failed to recv");
-			}
-
-			fprintf(stderr, "[%lu]recv: \n%s\n\n",recv_len, recv_buf);
-			*/
+			
 		}
 		else {
 			pthread_mutex_unlock(&converter->sync_mutex);

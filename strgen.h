@@ -13,6 +13,7 @@ struct str_with_tm_t
 	size_t len;
 
 	struct tm *timestamp;
+	time_t time;
 	char *tm_str;
 	size_t tm_len;
 	char tm_fmt[20];

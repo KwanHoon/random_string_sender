@@ -18,6 +18,9 @@ int main(int argc, char *argv[])
 	int status = 0;
 
 	size_t micro_interval = 0;
+	struct timeval start_t;
+	struct timeval end_t;
+	double diff_t = 0.0;
 
 	fprintf(stderr, "Start main\n");
 
@@ -26,8 +29,8 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Failed to load config\n");
 		return -1;
 	}
-
-	micro_interval = cfg.str_int * 1000;
+	if(cfg.str_int != 0)
+		micro_interval = cfg.str_int * 1000;
 	
 	if(init_str_with_tm(&rand_str, &cfg) != 0) {
 		fprintf(stderr, "Failed to init string\n");
@@ -49,23 +52,47 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	cvt_thr_id = pthread_create(&convert_thread, NULL, convert_func, (void *)&converter);
 	snd_thr_id = pthread_create(&send_thread, NULL, send_func, (void *)&sender);
-		
-
+	cvt_thr_id = pthread_create(&convert_thread, NULL, convert_func, (void *)&converter);
+	
 	// TODO. temp, should be edited!
 	fprintf(stderr, "Wait connection\n");
-	//while(!converter.is_connected);
+	while(!sender.is_connected);
 
 	// start to make random string
 	fprintf(stderr, "Start to generate a random string.\n");	
 	while(!make_rand_str(&rand_str)) {
 		elem.data = &rand_str;
+
+		if(!diff_t)
+			gettimeofday(&start_t, NULL);
 		usleep(micro_interval);
 
 		pthread_mutex_lock(&converter.sync_mutex);
-		if(enqueue(converter.queue, elem) == 0)
-			pthread_cond_signal(&converter.sync_cond);
+		if(enqueue(converter.queue, elem) == 0) {
+			// check a interval count
+			if(converter.int_size == 0) {	// Converter get only one element.
+				pthread_cond_signal(&converter.sync_cond);
+			}
+			else {
+				if(converter.queue.size == converter.int_size)
+					pthread_cond_signal(&converter.sync_cond);
+				else
+					continue;
+			}
+
+			// check a interval time
+			gettimeofday(&end_t, NULL);
+			diff_t = ((double)end_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000)
+				- ((double)start_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000);
+			if(diff_t < converter.int_time) {
+				continue;	
+			}
+			else {
+				diff_t = 0.0;
+				pthread_cond_signal(&converter.sync_cond);
+			}
+		}
 		else	
 			fprintf(stderr, "Failed to enqueue\n");
 		pthread_mutex_unlock(&converter.sync_mutex);

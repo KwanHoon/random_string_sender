@@ -88,6 +88,7 @@ int make_rand_str(struct str_with_tm_t *str_with_tm)
 	timestamp = str_with_tm->timestamp;
 
 	t = time(NULL);
+	str_with_tm->time = t;
 	timestamp = localtime(&t);
 	if(strftime(str_with_tm->tm_str, str_with_tm->tm_len, str_with_tm->tm_fmt, timestamp) == 0) {
 		perror("Failed to get timestamp");

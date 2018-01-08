@@ -4,8 +4,7 @@ int init_sender(struct sender_t *sender, struct cfg_info *cfg)
 {
 	if(sender == NULL || cfg == NULL) {
 		fprintf(stderr, "Faeild to init sender.null pointer\n");
-		return -1;
-	}
+		return -1; }
 
 	strcpy(sender->host, cfg->host);
 	sender->host[strlen(cfg->host) - 1] = '\0';
