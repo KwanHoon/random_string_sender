@@ -4,6 +4,7 @@
 
 #include "formatter.h"
 
+// NOTE: a pair must be allocated by caller
 int make_kv(char *pair, const char *key, const char *value)
 {
 	char *kv_fmt = "\"%s\":\"%s\"";
@@ -24,12 +25,12 @@ int make_kv(char *pair, const char *key, const char *value)
 	return 0;
 }
 
-char *make_json_msg(enum jsontype type, size_t count, char *arr_name,  ...)
+char *make_json_msg(enum jsontype type, char *arr_name, size_t count,   ...)
 {
 	int i = 0;
 	char *result_str = NULL;
 	char *str = NULL;
-	char *tmp = NULL;
+	char tmp[5120];
 	char *obj_fmt = "{%s}";
 	char *arr_fmt = "\"%s\":[%s]";
 	size_t len = 0;
@@ -46,11 +47,7 @@ char *make_json_msg(enum jsontype type, size_t count, char *arr_name,  ...)
 	}
 	va_end(args);
 
-	tmp = (char *)malloc(total_len + count);	
-	if(tmp == NULL) {
-		fprintf(stderr, "Failed to alloc string memory\n");
-		return NULL;
-	}
+	memset(tmp, '\0', total_len + count);
 
 	va_start(args, count);
 	for(i = 0; i < count; i++) {
@@ -59,8 +56,6 @@ char *make_json_msg(enum jsontype type, size_t count, char *arr_name,  ...)
 		tmp_len += strlen(str);
 		if(tmp_len > total_len + count) {
 			fprintf(stderr, "Invalid arguments count or string length\n");
-			if(tmp)
-				free(tmp);
 			return NULL;
 		}
 		tmp[tmp_len++] = ',';
@@ -68,15 +63,12 @@ char *make_json_msg(enum jsontype type, size_t count, char *arr_name,  ...)
 	va_end(args);
 	tmp[tmp_len - 1] = '\0';
 
-	//fprintf(stderr, "tmp: %s\n", tmp);
-
 	result_str = (char *)malloc(total_len + count + 2);
 	if(result_str == NULL) {
 		fprintf(stderr, "Failed to alloc string memory2\n");
-		//if(tmp)
-		//	free(tmp);
 		return NULL;
 	}
+	memset(result_str, '\0', total_len + count + 2);
 
 	if(type == json_obj)
 		sprintf(result_str, obj_fmt, tmp);
@@ -84,17 +76,10 @@ char *make_json_msg(enum jsontype type, size_t count, char *arr_name,  ...)
 		sprintf(result_str, arr_fmt, arr_name, tmp);	// TODO: arr_name null check.
 	else {
 		fprintf(stderr, "Invalid json type\n");
-		//if(tmp)
-		//	free(tmp);
-		//if(result_str)
-		//	free(result_str);
 		return NULL;
 	}
 
-	//if(tmp)
-	//	free(tmp);
-
-	//fprintf(stderr, "[debug] result: %s\n", result_str);
+	//fprintf(stderr, "[debug] json result: %s\n", result_str);
 
 	return result_str;
 
@@ -102,6 +87,8 @@ char *make_json_msg(enum jsontype type, size_t count, char *arr_name,  ...)
 
 void release_json_msg(char *json_msg)
 {
-	if(json_msg)
+	if(json_msg) {
 		free(json_msg);
+		json_msg = NULL;
+	}
 }

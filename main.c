@@ -8,7 +8,6 @@ int main(int argc, char *argv[])
 	struct str_with_tm_t rand_str;
 	struct convert_t converter;
 	struct sender_t sender;
-	//struct Element elem;
 
 	pthread_t convert_thread;
 	pthread_t send_thread;
@@ -37,13 +36,13 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if(init_converter(&converter, &cfg) != 0) {
-		fprintf(stderr, "Failed to init converter\n");
+	if(init_sender(&sender, &cfg) != 0) {
+		fprintf(stderr, "Failed to init sender\n");
 		return -1;
 	}
 
-	if(init_sender(&sender, &cfg) != 0) {
-		fprintf(stderr, "Failed to init sender\n");
+	if(init_converter(&converter, &cfg) != 0) {
+		fprintf(stderr, "Failed to init converter\n");
 		return -1;
 	}
 
@@ -62,9 +61,6 @@ int main(int argc, char *argv[])
 	// start to make random string
 	fprintf(stderr, "Start to generate a random string.\n");	
 	while(!make_rand_str(&rand_str)) {
-		//elem.data = &rand_str;
-		//fprintf(stderr, "elem1: %s\n", ((struct str_with_tm_t *)elem.data)->fullstr);
-
 		if(!diff_t)
 			gettimeofday(&start_t, NULL);
 
@@ -73,18 +69,8 @@ int main(int argc, char *argv[])
 
 		pthread_mutex_lock(&converter.sync_mutex);
 
-		for(int i = 0; i < converter.queue->size; i++) {
-			fprintf(stderr, "main arr: %s\n", ((struct str_with_tm_t *)converter.queue->array[i]->data)->fullstr);
-		}
-
 		if(enqueue(converter.queue, &rand_str) == 0) {
-			//fprintf(stderr, "success enqueue\n");
-			// check a interval count
-
-			//fprintf(stderr, "elem2: %s\n", ((struct str_with_tm_t *)elem.data)->fullstr);
-			
 			if(converter.int_count == 0) {	// Converter get only one element.
-				//fprintf(stderr, "signal 1\n ");
 				pthread_cond_signal(&converter.sync_cond);
 			}
 			else {
@@ -112,15 +98,14 @@ int main(int argc, char *argv[])
 		}
 		else	
 			fprintf(stderr, "Failed to enqueue\n");
-		pthread_mutex_unlock(&converter.sync_mutex);
+
+		release_str_with_tm(&rand_str);
+		pthread_mutex_unlock(&converter.sync_mutex);	
 	}
 	fprintf(stderr, "End to make random string\n");
 
-	release_str_with_tm(&rand_str);
 	release_converter(&converter);
 
-
-	//pthread_mutex_unlock(&converter.sync_mutex);	
 	pthread_join(convert_thread, (void **)&status);
 	pthread_join(send_thread, (void **)&status);
 

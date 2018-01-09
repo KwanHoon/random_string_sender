@@ -19,6 +19,7 @@ struct str_with_tm_t
 	char tm_fmt[20];
 
 	char *fullstr;
+	size_t fulllen;
 };
 
 int init_str_with_tm(struct str_with_tm_t *str_with_tm, struct cfg_info *cfg);

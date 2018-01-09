@@ -5,12 +5,12 @@ host=db.fun25.co.kr
 port=11704
 # unit is milliseconds
 send_time=0
-send_count=3
+send_count=10
 
 [string]
 # random string lengh
-length=50
+length=10
 # timestamp format
 timestamp_format=%c
 # unis is milliseconds
-interval=100
+interval=200

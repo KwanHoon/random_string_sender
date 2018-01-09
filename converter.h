@@ -3,11 +3,11 @@
 
 //#include "queue.h"
 #include "sender.h"
-#include "strgen.h"
+#include "queue.h"
 
 struct convert_t
 {
-	struct sender_t sender;
+	struct sender_t *sender;
 	struct Queue *queue;
 		
 	char *str;
@@ -19,8 +19,8 @@ struct convert_t
 	pthread_mutex_t sync_mutex;
 	pthread_cond_t sync_cond;
 
-	pthread_mutex_t *send_sync_mtx;
-	pthread_cond_t *send_sync_cond;
+	//pthread_mutex_t *send_sync_mtx;
+	//pthread_cond_t *send_sync_cond;
 };
 
 int init_converter(struct convert_t *converter, struct cfg_info *cfg);

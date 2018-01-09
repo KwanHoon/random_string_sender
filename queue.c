@@ -1,6 +1,6 @@
 #include "queue.h"
 
-#include "strgen.h"
+//#include "strgen.h"
 
 // function to create a queue of given capacity. 
 // It initializes size of queue as 0
@@ -10,7 +10,7 @@ struct Queue* create_queue(unsigned capacity)
  queue->capacity = capacity;
  queue->front = queue->size = 0; 
  queue->rear = capacity - 1;
- queue->array = (struct Element **)malloc(queue->capacity * sizeof(struct Element *));
+ queue->array = (struct str_with_tm_t *)malloc(queue->capacity * sizeof(struct str_with_tm_t));
 
  pthread_mutex_init(&queue->mtx, NULL);
 
@@ -41,9 +41,11 @@ int is_empty(struct Queue* queue)
 // It changes rear and size
 //void enqueue(struct Queue* queue, int item)
 //int enqueue(struct Queue* queue, struct Element item)
-int enqueue(struct Queue* queue, void *item)
+//int enqueue(struct Queue* queue, void *item)
+int enqueue(struct Queue* queue, struct str_with_tm_t *item)
 {
-	struct Element *elem;
+	//struct Element *elem = NULL;
+	struct str_with_tm_t elem = *item;
  pthread_mutex_lock(&queue->mtx);
 
  if (is_full(queue)) {
@@ -51,24 +53,15 @@ int enqueue(struct Queue* queue, void *item)
   return -1;
  }
 
-for(int i = 0; i < queue->size; i++) {
-	fprintf(stderr, "ex e arr: %s\n", ((struct str_with_tm_t *)queue->array[i]->data)->fullstr);
- }
-
-elem = (struct Element *)malloc(sizeof(struct Element));
-elem->data = item;
+//elem = (struct Element *)malloc(sizeof(struct Element));
+//elem->data = item;
 
  queue->rear = (queue->rear + 1) % queue->capacity;
- fprintf(stderr, "[queue debug] rear: %d\n", queue->rear);
+ //fprintf(stderr, "[queue debug] rear: %d\n", queue->rear);
 
  //queue->array[queue->rear] = item;
  queue->array[queue->rear] = elem;
  queue->size = queue->size + 1;
-
- fprintf(stderr, "[queue debug] enq: %s\n", ((struct str_with_tm_t *)elem->data)->fullstr);
- for(int i = 0; i < queue->size; i++) {
-	fprintf(stderr, "e arr: %s\n", ((struct str_with_tm_t *)queue->array[i]->data)->fullstr);
- }
 
  pthread_mutex_unlock(&queue->mtx);
 
@@ -79,33 +72,25 @@ elem->data = item;
 // It changes front and size
 //int dequeue(struct Queue* queue)
 //struct Element dequeue(struct Queue* queue)
-void *dequeue(struct Queue* queue)
+struct str_with_tm_t dequeue(struct Queue* queue)
 {
- struct Element item;
- struct Element *remove;
+ struct str_with_tm_t item;
 
  pthread_mutex_lock(&queue->mtx);
 
  if (is_empty(queue)) {
 	pthread_mutex_unlock(&queue->mtx);
-	return NULL;
+	return item;
  }
 
- for(int i = 0; i < queue->size; i++) {
-	fprintf(stderr, "d arr: %s\n", ((struct str_with_tm_t *)queue->array[i]->data)->fullstr);
- }
-
- fprintf(stderr, "[queue debug] front: %d\n", queue->front);
- remove = queue->array[queue->front];
- item = *remove;
+ //fprintf(stderr, "[queue debug] front: %d\n", queue->front);
+ item = queue->array[queue->front];
  queue->front = (queue->front + 1) % queue->capacity;
  queue->size = queue->size - 1;
 	
- free(remove);
-
- fprintf(stderr, "[queue debug] deq: %s\n", ((struct str_with_tm_t *)item.data)->fullstr);
+ //fprintf(stderr, "[queue debug] deq: %s\n", item.fullstr);
 
  pthread_mutex_unlock(&queue->mtx);
 
- return item.data;
+ return item;
 }

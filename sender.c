@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -30,6 +31,7 @@ int init_sender(struct sender_t *sender, struct cfg_info *cfg)
 void *send_func(void *arg)
 {
 	struct sender_t *sender = (struct sender_t *)arg;
+	struct str_with_tm_t send_str;
 
 	// http
 	char http_header[1024];
@@ -46,7 +48,6 @@ void *send_func(void *arg)
 	"Content-Length: %lu\r\n\r\n";
 	char recv_buf[2048];
 	size_t recv_len = 0;
-	char *json_str;
 
 	int sock = 0;
 	char *hostname;
@@ -94,16 +95,30 @@ void *send_func(void *arg)
 	while(1) {
 		pthread_mutex_lock(&sender->send_sync_mtx);
 		pthread_cond_wait(&sender->send_sync_cond, &sender->send_sync_mtx);
-		if((json_str = (char *)dequeue(sender->queue)) != NULL) {
+		memset(&send_str, 0x00, sizeof(send_str));
+		if(sender->queue->size) {
+			send_str = dequeue(sender->queue);
+			//fprintf(stderr, "recv from queue: \n%s\n", send_str.fullstr);
 			pthread_mutex_unlock(&sender->send_sync_mtx);
 
 			// send http header
-			//sprintf(http_header, http_header_fmt, ent->h_name, sender->port, strlen(total_json));
+			sprintf(http_header, http_header_fmt, ent->h_name, sender->port, send_str.fulllen);
 			if(write(sock, http_header, strlen(http_header), 0) < 0) {
 				perror("Failed to send header");
 			}
 			else {
-
+				if(write(sock, send_str.fullstr, send_str.fulllen) < 0) {
+					perror("Failed to send body");
+				}
+				else {
+					fprintf(stderr, "[debug] send: \n%s%s\n", http_header, send_str.fullstr);
+					if((recv_len = read(sock, recv_buf, sizeof(recv_buf))) < 0) {
+						perror("Faild to recv");
+					}
+					else {
+						fprintf(stderr, "[debug] recv: \n%s\n", recv_buf);
+					}
+				}
 			}
 		}
 		else {

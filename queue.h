@@ -6,19 +6,24 @@
 #include <limits.h>
 #include <pthread.h>
 
+#include "strgen.h"
+
 #define MAX_QUEUE_SIZE 1000
 
+/*
 struct Element
 {
 	void *data;
 };
+*/
 
 // A structure to represent a queue
 struct Queue
 {
  int front, rear, size;
  unsigned capacity;
- struct Element **array;
+ //struct Element **array;
+ struct str_with_tm_t *array;
  pthread_mutex_t mtx;
 };
 
@@ -39,14 +44,15 @@ int is_empty(struct Queue* queue);
 // It changes rear and size
 //void enqueue(struct Queue* queue, int item)
 //int enqueue(struct Queue* queue, struct Element item);
-int enqueue(struct Queue* queue, void *item);
+//int enqueue(struct Queue* queue, void *item);
+int enqueue(struct Queue* queue, struct str_with_tm_t *item);
 
 
 // Function to remove an item from queue. 
 // It changes front and size
 //int dequeue(struct Queue* queue)
 //struct Element dequeue(struct Queue* queue);
-void *dequeue(struct Queue* queue);
+struct str_with_tm_t dequeue(struct Queue* queue);
 
 
 #endif

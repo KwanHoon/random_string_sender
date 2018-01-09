@@ -22,7 +22,7 @@ int make_kv(char *pair, const char *key, const char*value);
  *  json object format
  * { "key1":"value1","key2":"value2", ... }
  */
-char *make_json_msg(enum jsontype type, size_t count, char *arr_name, ...);
+char *make_json_msg(enum jsontype type, char *arr_name, size_t count,...);
 
 void release_json_msg(char *json_msg);
 

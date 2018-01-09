@@ -62,8 +62,7 @@ int init_send_sync(struct convert_t *converter, struct sender_t *sender)
 		return -1;
 	}
 
-	converter->send_sync_mtx = &sender->send_sync_mtx;
-	converter->send_sync_cond = &sender->send_sync_cond;
+	converter->sender = sender;
 
 	return 0;
 }
@@ -84,6 +83,9 @@ void *convert_func(void *arg)
 	char **items = NULL;
 	char **tmp_items = NULL;
 	char *item_obj = NULL;
+	char *tmp_obj = NULL;
+	size_t obj_len = 0;
+	char *total_obj = NULL;
 
 	char *start_tm_kv = NULL;
 	char *end_tm_kv = NULL;
@@ -97,8 +99,8 @@ void *convert_func(void *arg)
 	char *stm_kv = NULL;		// start time key-value
 	char *etm_kv = NULL;		// end time key-value 
 
-	struct Element elem;
-	struct str_with_tm_t *rand_str = NULL;
+	struct str_with_tm_t rand_str;
+	struct str_with_tm_t send_str;
 
 	if(converter == NULL) {
 		fprintf(stderr, "converter is null\n");
@@ -108,95 +110,114 @@ void *convert_func(void *arg)
 	while(1) {
 		pthread_mutex_lock(&converter->sync_mutex);
 		pthread_cond_wait(&converter->sync_cond, &converter->sync_mutex);
-		fprintf(stderr, "start dequeue\n");
-		while((rand_str = (struct str_with_tm_t *)dequeue(converter->queue)) != NULL) {
-			//pthread_mutex_unlock(&converter->sync_mutex);
-			fprintf(stderr, "dequeue [size: %lu]\n", converter->queue->size);
-			fprintf(stderr, "rand str: %s\n", rand_str->fullstr);
+		//fprintf(stderr, "------------------------------------------------------------\n");
+		while(converter->queue->size) {
+			rand_str = dequeue(converter->queue);
+
+			pthread_mutex_unlock(&converter->sync_mutex);
 			
-			if(str_kv == NULL)
-				str_kv = (char *)malloc(strlen(str_k) + strlen(rand_str->str));
-			if(tm_kv == NULL)
-				tm_kv = (char *)malloc(strlen(tm_k) + strlen(rand_str->tm_str));
+			//if(str_kv == NULL)
+				str_kv = (char *)malloc(strlen(str_k) + strlen(rand_str.str));
+			//if(tm_kv == NULL)
+				tm_kv = (char *)malloc(strlen(tm_k) + strlen(rand_str.tm_str));
 			if(str_kv == NULL || tm_kv == NULL) {
 				fprintf(stderr, "Faild to alloc memory\n");
 				break;
 			}
-			memset(str_kv, '\0', strlen(str_k) + strlen(rand_str->str));
-			memset(tm_kv, '\0', strlen(tm_k) + strlen(rand_str->tm_str));
+			memset(str_kv, '\0', strlen(str_k) + strlen(rand_str.str));
+			memset(tm_kv, '\0', strlen(tm_k) + strlen(rand_str.tm_str));
 
-			make_kv(str_kv, str_k, rand_str->str);
-			make_kv(tm_kv, tm_k, rand_str->tm_str);
-			fprintf(stderr, "%s\n%s\n\n", str_kv, tm_kv);
-
-			// default. only one element
+			make_kv(str_kv, str_k, rand_str.str);
+			make_kv(tm_kv, tm_k, rand_str.tm_str);
+			//fprintf(stderr, "\n%s\n%s\n", str_kv, tm_kv); // default. only one element
 			if(converter->int_count == 0 && converter->int_time == 0) {
-				str_tm_obj = make_json_msg(json_obj, 1, NULL, str_kv, tm_kv);	
+				str_tm_obj = make_json_msg(json_obj, NULL, 1, str_kv, tm_kv);	
 			}
 			else {
 				// set start & end time
 				if(stm_v == NULL) {
-					stm_v = rand_str->tm_str;
+					stm_v = rand_str.tm_str;
 				}
-				else {
-						
+				else if(converter->queue->size == 0){
+					etm_v = rand_str.tm_str;	
 				}
 
-				// make count
 				if(converter->int_count > 0) {
 					if(count_v == 0) {
 						count_v = converter->queue->size + 1;
-						items = (char **)malloc(count_v);
-						tmp_items = items;		// to save initial position
-
 						sprintf(count_str, "%lu", count_v);
-						count_kv = (char *)malloc(strlen(count_k) + strlen(count_str));
-						if(count_kv == NULL) {
-							fprintf(stderr, "Failed to alloc memory\n");
+												
+						items = (char **)malloc(sizeof(char *) * count_v);
+						if(items == NULL) {
+							perror("Failed to alloc memory(items)");
 							break;
 						}
-						make_kv(count_kv, count_k, count_str);
-						fprintf(stderr, "count: %s\n", count_kv);	
+						tmp_items = items;		// to save initial position
 					}
+
 					// make random string with timestamp
 					if(items != NULL) {
-						*items = make_json_msg(json_obj, 2, NULL, str_kv, tm_kv);
-						fprintf(stderr, "[debug] item1: %s\n", *items);
+						*items = make_json_msg(json_obj, NULL, 2, str_kv, tm_kv);
+						//fprintf(stderr, "[debug] item1: %s\n", *items);	
 						items++;
+						release_json_msg(str_kv);
+						release_json_msg(tm_kv);
 					}
-
-				}
-				else if(converter->int_time > 0) {
-					
-				}
+				}	
 			}
-				
-			/*
-			if(str_kv)
-				free(str_kv);
-			if(tm_kv)
-				free(tm_kv);
-			
-			if(str_tm_obj)
-				free(str_tm_obj);
-				*/
-			
 		}
+		items -= count_v;
+
+		count_kv = (char *)malloc(strlen(count_k) + strlen(count_str));
+		if(count_kv == NULL) {
+			fprintf(stderr, "Failed to alloc memory\n");
+			break;
+		}
+		make_kv(count_kv, count_k, count_str);
+
+		stm_kv = (char *)malloc(strlen(stm_k) + strlen(stm_v));
+		etm_kv = (char *)malloc(strlen(etm_k) + strlen(etm_v));
+		make_kv(stm_kv, stm_k, stm_v);
+		make_kv(etm_kv, etm_k, etm_v);
 
 		// make item array
-		fprintf(stderr, "\n");
-		item_obj = (char *)malloc(strlen(tmp_items[0]) * count_v + count_v);
-		for(n = 0; n < count_v; n++) {
-			strcpy(item_obj, ",");
-			strcpy(item_obj, tmp_items[n]);
-			fprintf(stderr, "[debug] item2: %s\n", item_obj);
-		}
-		item_obj[strlen(item_obj)] = '\0';
-		fprintf(stderr, "item obj: %s\n", item_obj);
-		items_arr = make_json_msg(json_arr, 1, items_k, item_obj);
-		fprintf(stderr, "[debug] arr: \n%s\n", items_arr);
+		//fprintf(stderr, "\n");
+		item_obj = (char *)malloc(strlen(items[0]) * count_v + count_v);
+		memset(item_obj, '\0', strlen(items[0]) * count_v + count_v);
+		//strcpy(item_obj, "");
+		for(n = 0; n < count_v; n++) {	
+			strncat(item_obj, items[n], strlen(items[n]));
+			strncat(item_obj, ",", 1);
+		}	
+		item_obj[strlen(item_obj) - 1] = '\0';
+		items_arr = make_json_msg(json_arr, items_k, 1, item_obj);
+		release_json_msg(item_obj);
+		//fprintf(stderr, "[debug] item array: \n%s\n", items_arr);
 
-		pthread_mutex_unlock(&converter->sync_mutex);
+		total_obj = make_json_msg(json_obj, NULL, 4, stm_kv, etm_kv, count_kv, items_arr);	
+		release_json_msg(stm_kv);
+		release_json_msg(etm_kv);
+		release_json_msg(count_kv);
+
+		//fprintf(stderr, "[debug] total obj: \n%s\n", total_obj);
+		memset(&send_str, 0x00, sizeof(send_str));
+		send_str.fullstr = total_obj;
+		send_str.fulllen = strlen(total_obj);
+		//release_json_msg(total_obj);
+
+		// notify to sender
+		pthread_mutex_lock(&converter->sender->send_sync_mtx);
+		if(enqueue(converter->sender->queue, &send_str) < 0) {
+			fprintf(stderr, "Failed to insert sender queue\n");
+			pthread_mutex_unlock(&converter->sender->send_sync_mtx);
+			break;
+		}
+		pthread_cond_signal(&converter->sender->send_sync_cond);
+		pthread_mutex_unlock(&converter->sender->send_sync_mtx);
+		
+		count_v = 0;
+		free(items);
+		items = NULL;
 	}
 
 	fprintf(stderr, "[debug] convert thread is end\n");

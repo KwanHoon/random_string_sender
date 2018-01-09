@@ -9,7 +9,7 @@ LDFLAGS = -lpthread
 all : $(TARGET)
 
 $(TARGET) : $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) -g -o $@ $(OBJS) $(LDFLAGS)
 
 clean :
 	rm -f $(OBJS) $(TARGET)
