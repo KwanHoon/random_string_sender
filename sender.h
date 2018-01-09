@@ -16,7 +16,7 @@ struct sender_t
 
 	pthread_mutex_t send_sync_mtx;
 	pthread_cond_t send_sync_cond;
-}
+};
 
 int init_sender(struct sender_t *sender, struct cfg_info *cfg);
 

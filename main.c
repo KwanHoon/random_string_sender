@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 	struct str_with_tm_t rand_str;
 	struct convert_t converter;
 	struct sender_t sender;
-	struct Element elem;
+	//struct Element elem;
 
 	pthread_t convert_thread;
 	pthread_t send_thread;
@@ -62,23 +62,38 @@ int main(int argc, char *argv[])
 	// start to make random string
 	fprintf(stderr, "Start to generate a random string.\n");	
 	while(!make_rand_str(&rand_str)) {
-		elem.data = &rand_str;
+		//elem.data = &rand_str;
+		//fprintf(stderr, "elem1: %s\n", ((struct str_with_tm_t *)elem.data)->fullstr);
 
 		if(!diff_t)
 			gettimeofday(&start_t, NULL);
-		usleep(micro_interval);
+
+		if(micro_interval != 0)
+			usleep(micro_interval);
 
 		pthread_mutex_lock(&converter.sync_mutex);
-		if(enqueue(converter.queue, elem) == 0) {
+
+		for(int i = 0; i < converter.queue->size; i++) {
+			fprintf(stderr, "main arr: %s\n", ((struct str_with_tm_t *)converter.queue->array[i]->data)->fullstr);
+		}
+
+		if(enqueue(converter.queue, &rand_str) == 0) {
+			//fprintf(stderr, "success enqueue\n");
 			// check a interval count
-			if(converter.int_size == 0) {	// Converter get only one element.
+
+			//fprintf(stderr, "elem2: %s\n", ((struct str_with_tm_t *)elem.data)->fullstr);
+			
+			if(converter.int_count == 0) {	// Converter get only one element.
+				//fprintf(stderr, "signal 1\n ");
 				pthread_cond_signal(&converter.sync_cond);
 			}
 			else {
-				if(converter.queue.size == converter.int_size)
+				if(converter.queue->size == converter.int_count)
 					pthread_cond_signal(&converter.sync_cond);
-				else
+				else {
+					pthread_mutex_unlock(&converter.sync_mutex);
 					continue;
+				}
 			}
 
 			// check a interval time
@@ -86,9 +101,11 @@ int main(int argc, char *argv[])
 			diff_t = ((double)end_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000)
 				- ((double)start_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000);
 			if(diff_t < converter.int_time) {
+				pthread_mutex_unlock(&converter.sync_mutex);
 				continue;	
 			}
 			else {
+				//fprintf(stderr, "signal 2\n");
 				diff_t = 0.0;
 				pthread_cond_signal(&converter.sync_cond);
 			}

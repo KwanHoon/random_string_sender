@@ -108,5 +108,7 @@ int make_rand_str(struct str_with_tm_t *str_with_tm)
 	// copy random string & timestamp
 	sprintf(str_with_tm->fullstr, fullstr_fmt, str_with_tm->str, str_with_tm->tm_str);
 
+	fprintf(stderr, "[debug] str_with_tm: %s\n", str_with_tm->fullstr);
+
 	return 0;	
 }

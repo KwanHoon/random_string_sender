@@ -59,14 +59,14 @@ int load_config(const char *path, struct cfg_info *cfg)
 			if((vcfg = strchr(line, '=')) != NULL)
 				cfg->str_int = atoi(vcfg + 1);
 		}
-		/*else if(strstr(line, "interval_time") != NULL) {
+		else if(strstr(line, "send_time") != NULL) {
 			if((vcfg = strchr(line, '=')) != NULL)
 				cfg->send_int_time = atoi(vcfg + 1);
 		}
-		else if(strstr(line, "interval_count") != NULL) {
+		else if(strstr(line, "send_count") != NULL) {
 			if((vcfg = strchr(line, '=')) != NULL)
 				cfg->send_int_count = atoi(vcfg + 1);
-		}*/
+		}
 	}
 	//fprintf(stderr, "[debug] http info %s:%d\n", cfg->host, cfg->port);
 

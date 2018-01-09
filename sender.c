@@ -1,3 +1,10 @@
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "sender.h"
 
 int init_sender(struct sender_t *sender, struct cfg_info *cfg)
@@ -9,11 +16,12 @@ int init_sender(struct sender_t *sender, struct cfg_info *cfg)
 	strcpy(sender->host, cfg->host);
 	sender->host[strlen(cfg->host) - 1] = '\0';
 	sender->port = cfg->port;
+	sender->is_connected = 0;
 
 	sender->queue = create_queue(MAX_QUEUE_SIZE);
 
 	pthread_mutex_init(&sender->send_sync_mtx, NULL);
-	pthread_cond_init(&sender->send_sync_mtx, NULL);
+	pthread_cond_init(&sender->send_sync_cond, NULL);
 
 	return 0;
 }
@@ -72,7 +80,7 @@ void *send_func(void *arg)
 	
 	srv.sin_addr.s_addr = inet_addr(host_ip);
 	srv.sin_family = AF_INET;
-	srv.sin_port = htons(converter->port);
+	srv.sin_port = htons(sender->port);
 
 	if(connect(sock, (struct sockaddr *)&srv, sizeof(srv)) < 0) {
 		perror("Failed to connect server");
@@ -80,7 +88,8 @@ void *send_func(void *arg)
 	}
 
 	fprintf(stderr, "Connection Success [%s:%d]\n", sender->host, sender->port);
-	
+	sender->is_connected = 1;	
+
 	// dequeue and send. that's all
 	while(1) {
 		pthread_mutex_lock(&sender->send_sync_mtx);
@@ -89,7 +98,7 @@ void *send_func(void *arg)
 			pthread_mutex_unlock(&sender->send_sync_mtx);
 
 			// send http header
-			sprintf(http_header, http_header_fmt, ent->h_name, converter->port, strlen(total_json));
+			//sprintf(http_header, http_header_fmt, ent->h_name, sender->port, strlen(total_json));
 			if(write(sock, http_header, strlen(http_header), 0) < 0) {
 				perror("Failed to send header");
 			}

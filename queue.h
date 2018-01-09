@@ -18,7 +18,7 @@ struct Queue
 {
  int front, rear, size;
  unsigned capacity;
- struct Element *array;
+ struct Element **array;
  pthread_mutex_t mtx;
 };
 
@@ -38,7 +38,8 @@ int is_empty(struct Queue* queue);
 // Function to add an item to the queue.  
 // It changes rear and size
 //void enqueue(struct Queue* queue, int item)
-int enqueue(struct Queue* queue, struct Element item);
+//int enqueue(struct Queue* queue, struct Element item);
+int enqueue(struct Queue* queue, void *item);
 
 
 // Function to remove an item from queue. 

@@ -1,9 +1,11 @@
+## NOT ALLOW SPACE BETWEEN EQUALS
+
 [http]
 host=db.fun25.co.kr
 port=11704
 # unit is milliseconds
-interval_time=0
-interval_count=1
+send_time=0
+send_count=3
 
 [string]
 # random string lengh

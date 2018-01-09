@@ -7,6 +7,7 @@
 
 struct convert_t
 {
+	struct sender_t sender;
 	struct Queue *queue;
 		
 	char *str;
