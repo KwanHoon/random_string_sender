@@ -109,10 +109,8 @@ void *send_func(void *arg)
 		if(sender->queue->size) {
 			send_str = dequeue(sender->queue);
 			//fprintf(stderr, "recv from queue: \n%s\n", send_str.fullstr);
-			pthread_mutex_unlock(&sender->send_sync_mtx);
+			//pthread_mutex_unlock(&sender->send_sync_mtx);
 
-			//if(recv_buf == NULL)
-			//	recv_buf = (char *)malloc(send_str.fulllen + 1024);
 			memset(recv_buf, 0x00, MAX_RECVBUF_SIZE);
 
 			// send http header
@@ -126,44 +124,19 @@ void *send_func(void *arg)
 				}
 				else {
 					fprintf(stderr, "[debug] send: \n%s%s\n", http_header, send_str.fullstr);
-					/*
-					if((recv_len = read(sock, recv_buf, MAX_RECVBUF_SIZE)) < 0) {
-						perror("Faild to recv");
-					}
-					else {
-						fprintf(stderr, "[debug] recv: \n%s\n", recv_buf);
-					}
-					*/
-
-					
+					pthread_mutex_unlock(&sender->send_sync_mtx);
+									
 					total_cnt = 0;
 					while(total_cnt < MAX_RECVBUF_SIZE) {
 						recv_len = read(sock, &recv_buf[total_cnt], MAX_RECVBUF_SIZE - total_cnt);
 						if(recv_len < 0 && errno == EAGAIN) {
-							//perror("Socket  read error");
 							break;
 						}
 						else if(recv_len >= 0) {
-							//break;
 							total_cnt += recv_len;	
-							//perror("Socket read interrupted");
-						}
-						else {
-							//fprintf(stderr, "read %lu byte\n", recv_len);
-						}
+						}	
 					}
-					fprintf(stderr, "[debug] recv: \n%s\n", recv_buf);
-					
-
-					/*
-					total_cnt = 0;
-					while((recv_len = read(socket, &recv_buf[total_cnt], MAX_RECVBUF_SIZE - total_cnt)) > 0) {
-						total_cnt += recv_len;
-						fprintf(stderr, "[debug] recv11: \n%s\n", recv_buf);	
-						getchar();
-					}
-					fprintf(stderr, "[debug] recv22: \n%s\n", recv_buf);	
-					*/
+					fprintf(stderr, "[debug] recv: \n%s\n", recv_buf);	
 				}
 			}
 		}

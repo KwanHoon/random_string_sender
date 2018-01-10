@@ -1,6 +1,9 @@
 #ifndef FORMATTER_H_
 #define FORMATTER_H_
+
 #include <stdarg.h>
+
+#define JSON_MSG_SIZE 8096
 
 enum jsontype
 {
@@ -22,7 +25,7 @@ int make_kv(char *pair, const char *key, const char*value);
  *  json object format
  * { "key1":"value1","key2":"value2", ... }
  */
-char *make_json_msg(enum jsontype type, char *arr_name, size_t count,...);
+int make_json_msg(char *buf, enum jsontype type, const char *arr_name, size_t count, ...);
 
 void release_json_msg(char *json_msg);
 
