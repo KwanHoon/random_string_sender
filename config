@@ -11,6 +11,6 @@ send_count=10
 # random string lengh
 length=10
 # timestamp format
-timestamp_format=%c
+timestamp_format=%Y-%m-%d %H:%M:%S
 # unis is milliseconds
-interval=200
+interval=10

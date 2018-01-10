@@ -81,7 +81,6 @@ void *convert_func(void *arg)
 	char count_str[100];
 	char items_k[] = "items";
 	char **items = NULL;
-	char **tmp_items = NULL;
 	char *item_obj = NULL;
 	char *tmp_obj = NULL;
 	size_t obj_len = 0;
@@ -110,10 +109,8 @@ void *convert_func(void *arg)
 	while(1) {
 		pthread_mutex_lock(&converter->sync_mutex);
 		pthread_cond_wait(&converter->sync_cond, &converter->sync_mutex);
-		//fprintf(stderr, "------------------------------------------------------------\n");
 		while(converter->queue->size) {
 			rand_str = dequeue(converter->queue);
-
 			pthread_mutex_unlock(&converter->sync_mutex);
 			
 			//if(str_kv == NULL)
@@ -137,12 +134,14 @@ void *convert_func(void *arg)
 				// set start & end time
 				if(stm_v == NULL) {
 					stm_v = rand_str.tm_str;
+					//fprintf(stderr, "stm: %s\n", stm_v);
 				}
-				else if(converter->queue->size == 0){
+				else if(etm_v == NULL && converter->queue->size == 0){
 					etm_v = rand_str.tm_str;	
+					//fprintf(stderr, "etm: %s\n", etm_v);
 				}
 
-				if(converter->int_count > 0) {
+				//if(converter->int_count > 0) {
 					if(count_v == 0) {
 						count_v = converter->queue->size + 1;
 						sprintf(count_str, "%lu", count_v);
@@ -151,8 +150,7 @@ void *convert_func(void *arg)
 						if(items == NULL) {
 							perror("Failed to alloc memory(items)");
 							break;
-						}
-						tmp_items = items;		// to save initial position
+						}	
 					}
 
 					// make random string with timestamp
@@ -163,7 +161,7 @@ void *convert_func(void *arg)
 						release_json_msg(str_kv);
 						release_json_msg(tm_kv);
 					}
-				}	
+				//}	
 			}
 		}
 		items -= count_v;
@@ -181,10 +179,8 @@ void *convert_func(void *arg)
 		make_kv(etm_kv, etm_k, etm_v);
 
 		// make item array
-		//fprintf(stderr, "\n");
 		item_obj = (char *)malloc(strlen(items[0]) * count_v + count_v);
 		memset(item_obj, '\0', strlen(items[0]) * count_v + count_v);
-		//strcpy(item_obj, "");
 		for(n = 0; n < count_v; n++) {	
 			strncat(item_obj, items[n], strlen(items[n]));
 			strncat(item_obj, ",", 1);
@@ -196,14 +192,18 @@ void *convert_func(void *arg)
 
 		total_obj = make_json_msg(json_obj, NULL, 4, stm_kv, etm_kv, count_kv, items_arr);	
 		release_json_msg(stm_kv);
+		stm_v = NULL;
 		release_json_msg(etm_kv);
+		etm_v = NULL;
 		release_json_msg(count_kv);
-
+		release_json_msg(items_arr);
+		items_arr = NULL;
 		//fprintf(stderr, "[debug] total obj: \n%s\n", total_obj);
+
 		memset(&send_str, 0x00, sizeof(send_str));
 		send_str.fullstr = total_obj;
 		send_str.fulllen = strlen(total_obj);
-		//release_json_msg(total_obj);
+		release_json_msg(total_obj);
 
 		// notify to sender
 		pthread_mutex_lock(&converter->sender->send_sync_mtx);

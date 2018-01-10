@@ -6,6 +6,8 @@
 #include "queue.h"
 #include "config.h"
 
+#define MAX_RECVBUF_SIZE 10240
+
 struct sender_t
 {
 	struct Queue *queue;

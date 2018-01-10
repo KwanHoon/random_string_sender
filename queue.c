@@ -39,9 +39,6 @@ int is_empty(struct Queue* queue)
 
 // Function to add an item to the queue.  
 // It changes rear and size
-//void enqueue(struct Queue* queue, int item)
-//int enqueue(struct Queue* queue, struct Element item)
-//int enqueue(struct Queue* queue, void *item)
 int enqueue(struct Queue* queue, struct str_with_tm_t *item)
 {
 	//struct Element *elem = NULL;
@@ -53,13 +50,9 @@ int enqueue(struct Queue* queue, struct str_with_tm_t *item)
   return -1;
  }
 
-//elem = (struct Element *)malloc(sizeof(struct Element));
-//elem->data = item;
-
  queue->rear = (queue->rear + 1) % queue->capacity;
  //fprintf(stderr, "[queue debug] rear: %d\n", queue->rear);
 
- //queue->array[queue->rear] = item;
  queue->array[queue->rear] = elem;
  queue->size = queue->size + 1;
 
@@ -70,8 +63,6 @@ int enqueue(struct Queue* queue, struct str_with_tm_t *item)
 
 // Function to remove an item from queue. 
 // It changes front and size
-//int dequeue(struct Queue* queue)
-//struct Element dequeue(struct Queue* queue)
 struct str_with_tm_t dequeue(struct Queue* queue)
 {
  struct str_with_tm_t item;
@@ -83,7 +74,15 @@ struct str_with_tm_t dequeue(struct Queue* queue)
 	return item;
  }
 
- //fprintf(stderr, "[queue debug] front: %d\n", queue->front);
+ /*
+ fprintf(stderr, "[queue debug] front: %d\n", queue->front);
+	
+	fprintf(stderr, "in dequeue\n");
+ for(int i = 0; i < queue->size; i++) {
+	fprintf(stderr, "d[%d]:%s\n", i, queue->array[i].fullstr);
+ }
+ */
+
  item = queue->array[queue->front];
  queue->front = (queue->front + 1) % queue->capacity;
  queue->size = queue->size - 1;

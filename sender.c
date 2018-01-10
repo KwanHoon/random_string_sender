@@ -3,6 +3,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -46,10 +49,13 @@ void *send_func(void *arg)
 	"Connection: keep-alive\r\n"
 	"Cache-Control: no-cache\r\n"
 	"Content-Length: %lu\r\n\r\n";
-	char recv_buf[2048];
+	char recv_buf[MAX_RECVBUF_SIZE];
+	//char *recv_buf = NULL;
 	size_t recv_len = 0;
+	size_t total_cnt = 0;
 
 	int sock = 0;
+	int flags = 0;
 	char *hostname;
 	struct sockaddr_in srv;
 	struct in_addr addr;
@@ -91,6 +97,10 @@ void *send_func(void *arg)
 	fprintf(stderr, "Connection Success [%s:%d]\n", sender->host, sender->port);
 	sender->is_connected = 1;	
 
+	// set non-block socket
+	flags = fcntl(sock, F_GETFL, 0);
+	fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
 	// dequeue and send. that's all
 	while(1) {
 		pthread_mutex_lock(&sender->send_sync_mtx);
@@ -101,9 +111,13 @@ void *send_func(void *arg)
 			//fprintf(stderr, "recv from queue: \n%s\n", send_str.fullstr);
 			pthread_mutex_unlock(&sender->send_sync_mtx);
 
+			//if(recv_buf == NULL)
+			//	recv_buf = (char *)malloc(send_str.fulllen + 1024);
+			memset(recv_buf, 0x00, MAX_RECVBUF_SIZE);
+
 			// send http header
 			sprintf(http_header, http_header_fmt, ent->h_name, sender->port, send_str.fulllen);
-			if(write(sock, http_header, strlen(http_header), 0) < 0) {
+			if(write(sock, http_header, strlen(http_header)) < 0) {
 				perror("Failed to send header");
 			}
 			else {
@@ -112,12 +126,44 @@ void *send_func(void *arg)
 				}
 				else {
 					fprintf(stderr, "[debug] send: \n%s%s\n", http_header, send_str.fullstr);
-					if((recv_len = read(sock, recv_buf, sizeof(recv_buf))) < 0) {
+					/*
+					if((recv_len = read(sock, recv_buf, MAX_RECVBUF_SIZE)) < 0) {
 						perror("Faild to recv");
 					}
 					else {
 						fprintf(stderr, "[debug] recv: \n%s\n", recv_buf);
 					}
+					*/
+
+					
+					total_cnt = 0;
+					while(total_cnt < MAX_RECVBUF_SIZE) {
+						recv_len = read(sock, &recv_buf[total_cnt], MAX_RECVBUF_SIZE - total_cnt);
+						if(recv_len < 0 && errno == EAGAIN) {
+							//perror("Socket  read error");
+							break;
+						}
+						else if(recv_len >= 0) {
+							//break;
+							total_cnt += recv_len;	
+							//perror("Socket read interrupted");
+						}
+						else {
+							//fprintf(stderr, "read %lu byte\n", recv_len);
+						}
+					}
+					fprintf(stderr, "[debug] recv: \n%s\n", recv_buf);
+					
+
+					/*
+					total_cnt = 0;
+					while((recv_len = read(socket, &recv_buf[total_cnt], MAX_RECVBUF_SIZE - total_cnt)) > 0) {
+						total_cnt += recv_len;
+						fprintf(stderr, "[debug] recv11: \n%s\n", recv_buf);	
+						getchar();
+					}
+					fprintf(stderr, "[debug] recv22: \n%s\n", recv_buf);	
+					*/
 				}
 			}
 		}
@@ -125,4 +171,6 @@ void *send_func(void *arg)
 			pthread_mutex_unlock(&sender->send_sync_mtx);
 		}
 	}
+
+	//free(recv_buf);
 }

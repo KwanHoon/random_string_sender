@@ -64,40 +64,43 @@ int main(int argc, char *argv[])
 		if(!diff_t)
 			gettimeofday(&start_t, NULL);
 
-		if(micro_interval != 0)
-			usleep(micro_interval);
+		//if(micro_interval != 0)
+		usleep(micro_interval);
 
 		pthread_mutex_lock(&converter.sync_mutex);
-
 		if(enqueue(converter.queue, &rand_str) == 0) {
 			if(converter.int_count == 0) {	// Converter get only one element.
-				pthread_cond_signal(&converter.sync_cond);
+				// check a interval time
+				gettimeofday(&end_t, NULL);
+				diff_t = ((double)end_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000)
+					- ((double)start_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000);
+				if(diff_t < converter.int_time) {
+					pthread_mutex_unlock(&converter.sync_mutex);
+					continue;	
+				}
+				else {
+					fprintf(stderr, "diff: %f\n", diff_t);
+					diff_t = 0.0;
+					pthread_cond_signal(&converter.sync_cond);
+					pthread_mutex_unlock(&converter.sync_mutex);	
+				}
 			}
 			else {
-				if(converter.queue->size == converter.int_count)
+				// check interval count
+				if(converter.queue->size == converter.int_count) {	
 					pthread_cond_signal(&converter.sync_cond);
+					pthread_mutex_unlock(&converter.sync_mutex);	
+				}
 				else {
 					pthread_mutex_unlock(&converter.sync_mutex);
 					continue;
 				}
-			}
-
-			// check a interval time
-			gettimeofday(&end_t, NULL);
-			diff_t = ((double)end_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000)
-				- ((double)start_t.tv_sec * 1000 + (double)end_t.tv_usec / 1000);
-			if(diff_t < converter.int_time) {
-				pthread_mutex_unlock(&converter.sync_mutex);
-				continue;	
-			}
-			else {
-				//fprintf(stderr, "signal 2\n");
-				diff_t = 0.0;
-				pthread_cond_signal(&converter.sync_cond);
-			}
+			}	
 		}
-		else	
+		else {	
 			fprintf(stderr, "Failed to enqueue\n");
+			//pthread_mutex_unlock(&converter.sync_mutex);	
+		}
 
 		release_str_with_tm(&rand_str);
 		pthread_mutex_unlock(&converter.sync_mutex);	

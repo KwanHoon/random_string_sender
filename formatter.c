@@ -30,7 +30,8 @@ char *make_json_msg(enum jsontype type, char *arr_name, size_t count,   ...)
 	int i = 0;
 	char *result_str = NULL;
 	char *str = NULL;
-	char tmp[5120];
+	char *tmp = NULL;
+	//char tmp[5120];
 	char *obj_fmt = "{%s}";
 	char *arr_fmt = "\"%s\":[%s]";
 	size_t len = 0;
@@ -47,21 +48,21 @@ char *make_json_msg(enum jsontype type, char *arr_name, size_t count,   ...)
 	}
 	va_end(args);
 
+	tmp = (char *)malloc(total_len + count);
+	if(tmp == NULL) {
+		perror("Failed to alloc tmp memory");
+		return NULL;
+	}
 	memset(tmp, '\0', total_len + count);
 
 	va_start(args, count);
 	for(i = 0; i < count; i++) {
 		str = va_arg(args, char *);
 		strncat(tmp, str, strlen(str));
-		tmp_len += strlen(str);
-		if(tmp_len > total_len + count) {
-			fprintf(stderr, "Invalid arguments count or string length\n");
-			return NULL;
-		}
-		tmp[tmp_len++] = ',';
+		strncat(tmp, ",", 1);
 	}
 	va_end(args);
-	tmp[tmp_len - 1] = '\0';
+	tmp[strlen(tmp) - 1] = '\0';
 
 	result_str = (char *)malloc(total_len + count + 2);
 	if(result_str == NULL) {
@@ -78,6 +79,9 @@ char *make_json_msg(enum jsontype type, char *arr_name, size_t count,   ...)
 		fprintf(stderr, "Invalid json type\n");
 		return NULL;
 	}
+
+	free(tmp);
+	tmp = NULL;
 
 	//fprintf(stderr, "[debug] json result: %s\n", result_str);
 
