@@ -3,7 +3,9 @@
 [http]
 host=db.fun25.co.kr
 port=11704
-# unit is milliseconds
+hosturl=/sample
+hostparam=&paramsample=1
+# unit is milliseconds. NOT IMPLEMENTED YET
 send_time=0
 send_count=10
 

@@ -38,34 +38,44 @@ int load_config(const char *path, struct cfg_info *cfg)
 	cfg->port = 0;
 
 	while((read_len = getline(&line, &len, cfg_file)) != -1) {
-		//fprintf(stderr, "[debug] cfg_line: %s\n", line);
-		if(strstr(line, "host") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				strcpy(cfg->host, vcfg + 1);	
-		}
-		else if(strstr(line, "port") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				cfg->port = atoi(vcfg + 1);
-		}
-		else if(strstr(line, "length") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				cfg->len = atoi(vcfg + 1);
-		}
-		else if(strstr(line, "timestamp_format") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				strcpy(cfg->timestamp_fmt, vcfg + 1);
-		}
-		else if(strstr(line, "interval") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				cfg->str_int = atoi(vcfg + 1);
-		}
-		else if(strstr(line, "send_time") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				cfg->send_int_time = atoi(vcfg + 1);
-		}
-		else if(strstr(line, "send_count") != NULL) {
-			if((vcfg = strchr(line, '=')) != NULL)
-				cfg->send_int_count = atoi(vcfg + 1);
+		if((vcfg =strchr(line, '#') != NULL)) {
+			//fprintf(stderr, "[debug] cfg_line: %s\n", line);
+			if(strstr(line, "host") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					strcpy(cfg->host, vcfg + 1);	
+			}
+			else if(strstr(line, "hosturl") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					strcpy(cfg->hosturl, vcfg + 1);
+			}
+			else if(strstr(line, "hostparam") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)	
+					strcpy(cfg->hostparam, vcfg + 1);
+			}
+			else if(strstr(line, "port") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					cfg->port = atoi(vcfg + 1);
+			}
+			else if(strstr(line, "length") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					cfg->len = atoi(vcfg + 1);
+			}
+			else if(strstr(line, "timestamp_format") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					strcpy(cfg->timestamp_fmt, vcfg + 1);
+			}
+			else if(strstr(line, "interval") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					cfg->str_int = atoi(vcfg + 1);
+			}
+			else if(strstr(line, "send_time") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					cfg->send_int_time = atoi(vcfg + 1);
+			}
+			else if(strstr(line, "send_count") != NULL) {
+				if((vcfg = strchr(line, '=')) != NULL)
+					cfg->send_int_count = atoi(vcfg + 1);
+			}
 		}
 	}
 	//fprintf(stderr, "[debug] http info %s:%d\n", cfg->host, cfg->port);

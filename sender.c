@@ -11,6 +11,55 @@
 
 #include "sender.h"
 
+int init_regex(regex_t *regex)
+{
+	int reti = 0;
+
+	if(regex == NULL) {
+		fprintf(stderr, "regex is null\n");
+		return -1;
+	}
+
+	reti = regcomp(regex, IP_MATCH, REG_EXTENDED);
+	if(reti) {
+		fprintf(stderr, "Could not compile regex\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+int match_ip(regex_t *regex, const char *ip)
+{
+	int reti = 0;
+	int result = 0;
+	char msg[100];
+
+	if(regex == NULL) {
+		fprintf(stderr, "regex is null\n");
+		return -1;
+	}	
+	if(ip == NULL) {
+		fprintf(stderr, "ip is null\n");
+		return -1;
+	}	
+
+	reti = regexec(regex, ip, 0, NULL, 0);
+	if(!reti)
+		result = 0;
+	else if(reti == REG_NOMATCH)
+		result = -1;
+	else {
+		regerror(reti, regex, msg, sizeof(msg));
+		fprintf(stderr, "regex failed: %s\n", msg);
+		result = -1;
+	}	
+
+	regfree(regex);
+	
+	return result;	
+}
+
 int init_sender(struct sender_t *sender, struct cfg_info *cfg)
 {
 	if(sender == NULL || cfg == NULL) {
@@ -27,6 +76,11 @@ int init_sender(struct sender_t *sender, struct cfg_info *cfg)
 	pthread_mutex_init(&sender->send_sync_mtx, NULL);
 	pthread_cond_init(&sender->send_sync_cond, NULL);
 
+	if(init_regex(&sender->ip_regex) != 0) {
+		fprintf(stderr, "Failed to init regex\n");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -37,6 +91,7 @@ void *send_func(void *arg)
 	struct str_with_tm_t send_str;
 
 	// http
+	//const char *ip_match = "([0-9])\.([0-9])\.([0-9])\.([0-9])";	
 	char http_header[1024];
 	char http_body[1024];
 	char http_header_fmt[] = 
@@ -72,18 +127,25 @@ void *send_func(void *arg)
 	memset(&srv, '0', sizeof(srv));
 
 	fprintf(stderr, "[debug] config host: %s\n", sender->host);
-	ent = gethostbyname(sender->host);
-	if(ent == NULL) {
-		perror("Failed to get host name");
-		return NULL;
-	}
 
-	fprintf(stderr, "[debug] host name: %s\n", ent->h_name);
-	for(h = 0; ent->h_addr_list[h]; h++) {
-		memcpy(&addr.s_addr, ent->h_addr_list[h], sizeof(addr.s_addr));
-		inet_ntop(AF_INET, &addr, host_ip, sizeof(host_ip));
-		fprintf(stderr, "IP: %s\n", host_ip);
+	// host is not ip address
+	if(match_ip(&sender->ip_regex, sender->host) != 0) {
+		ent = gethostbyname(sender->host);
+		if(ent == NULL) {
+			perror("Failed to get host name");
+			return NULL;
+		}
+
+		fprintf(stderr, "[debug] host name: %s\n", ent->h_name);
+		for(h = 0; ent->h_addr_list[h]; h++) {
+			memcpy(&addr.s_addr, ent->h_addr_list[h], sizeof(addr.s_addr));
+			inet_ntop(AF_INET, &addr, host_ip, sizeof(host_ip));
+		}
 	}
+	else {
+		strncpy(host_ip, sender->host, sizeof(sender->host));	
+	}
+	fprintf(stderr, "IP: %s\n", host_ip);
 	
 	srv.sin_addr.s_addr = inet_addr(host_ip);
 	srv.sin_family = AF_INET;
