@@ -14,7 +14,7 @@ int init_converter(struct convert_t *converter, struct cfg_info *cfg)
 	
 	converter->int_time = cfg->send_int_time;
 	converter->int_count = cfg->send_int_count;
-	fprintf(stderr, "config, count: %lu, time: %lu\n", cfg->send_int_count, cfg->send_int_time);
+	//fprintf(stderr, "config, count: %lu, time: %lu\n", cfg->send_int_count, cfg->send_int_time);
 
 	if(converter->int_time < 0) {
 		fprintf(stderr, "Invalid interval time. Should be set larger than 0");

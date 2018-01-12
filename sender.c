@@ -66,8 +66,15 @@ int init_sender(struct sender_t *sender, struct cfg_info *cfg)
 		fprintf(stderr, "Faeild to init sender.null pointer\n");
 		return -1; }
 
+	memset(sender->hosturl, '\0', sizeof(sender->hosturl));
+	memset(sender->hostparam, '\0', sizeof(sender->hostparam));
+
 	strcpy(sender->host, cfg->host);
 	sender->host[strlen(cfg->host) - 1] = '\0';
+	strncpy(sender->hosturl, cfg->hosturl, sizeof(cfg->hosturl));
+	sender->hosturl[strlen(cfg->hosturl) - 1] = '\0';
+	strncpy(sender->hostparam, cfg->hostparam, sizeof(cfg->hostparam));
+	sender->hosturl[strlen(cfg->hostparam) - 1] = '\0';
 	sender->port = cfg->port;
 	sender->is_connected = 0;
 
@@ -92,10 +99,10 @@ void *send_func(void *arg)
 
 	// http
 	//const char *ip_match = "([0-9])\.([0-9])\.([0-9])\.([0-9])";	
-	char http_header[1024];
-	char http_body[1024];
+	char http_header[HTTP_HEADER_SIZE];
+	char http_url[HTTP_URL_SIZE];
 	char http_header_fmt[] = 
-	"POST / HTTP/1.1\r\n"
+	"POST %s HTTP/1.1\r\n"
 	"Host: %s:%d\r\n"
 	"User-Agent: sender\r\n"
 	"Accept: text/plain\r\n"
@@ -119,13 +126,6 @@ void *send_func(void *arg)
 	long *add = NULL;
 	char host_ip[16];
 
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(sock < 0) {
-		perror("Failed to create socket");
-		return NULL;
-	}
-	memset(&srv, '0', sizeof(srv));
-
 	fprintf(stderr, "[debug] config host: %s\n", sender->host);
 
 	// host is not ip address
@@ -146,11 +146,31 @@ void *send_func(void *arg)
 		strncpy(host_ip, sender->host, sizeof(sender->host));	
 	}
 	fprintf(stderr, "IP: %s\n", host_ip);
-	
+
+	// set host url and parameter
+	memset(http_url, '\0', sizeof(http_url));
+	if(sender->hosturl[0] != '\0')
+		strncpy(http_url, sender->hosturl, strlen(sender->hosturl));
+	else
+		strcpy(http_url, "/");	
+
+	if(sender->hostparam[0] != '\0')
+		strncat(http_url, sender->hostparam, strlen(sender->hostparam));
+
+	fprintf(stderr, "[debug] request url: %s\n", http_url);
+
+	// create socket and connection
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock < 0) {
+		perror("Failed to create socket");
+		return NULL;
+	}
+	memset(&srv, '0', sizeof(srv));
+
 	srv.sin_addr.s_addr = inet_addr(host_ip);
 	srv.sin_family = AF_INET;
 	srv.sin_port = htons(sender->port);
-
+	
 	if(connect(sock, (struct sockaddr *)&srv, sizeof(srv)) < 0) {
 		perror("Failed to connect server");
 		return NULL;
@@ -176,7 +196,7 @@ void *send_func(void *arg)
 			memset(recv_buf, 0x00, MAX_RECVBUF_SIZE);
 
 			// send http header
-			sprintf(http_header, http_header_fmt, ent->h_name, sender->port, send_str.fulllen);
+			sprintf(http_header, http_header_fmt, http_url, ent->h_name, sender->port, send_str.fulllen);
 			if(write(sock, http_header, strlen(http_header)) < 0) {
 				perror("Failed to send header");
 			}

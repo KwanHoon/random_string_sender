@@ -35,46 +35,40 @@ int load_config(const char *path, struct cfg_info *cfg)
 	}
 
 	memset(cfg->host, '\0', sizeof(cfg->host));
+	memset(cfg->hosturl, '\0', sizeof(cfg->hosturl));
+	memset(cfg->hostparam, '\0', sizeof(cfg->hostparam));
+
 	cfg->port = 0;
 
 	while((read_len = getline(&line, &len, cfg_file)) != -1) {
-		if((vcfg =strchr(line, '#') != NULL)) {
-			//fprintf(stderr, "[debug] cfg_line: %s\n", line);
-			if(strstr(line, "host") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					strcpy(cfg->host, vcfg + 1);	
+		if((vcfg =strchr(line, '#') == NULL)) {
+			//fprintf(stderr, "[debug] cfg_line: %s\n", line);	
+			if((vcfg = strstr(line, "host=")) != NULL) {
+				strcpy(cfg->host, vcfg + strlen("host="));
 			}
-			else if(strstr(line, "hosturl") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					strcpy(cfg->hosturl, vcfg + 1);
+			else if((vcfg = strstr(line, "url=")) != NULL) {
+				strcpy(cfg->hosturl, vcfg + strlen("url="));
 			}
-			else if(strstr(line, "hostparam") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)	
-					strcpy(cfg->hostparam, vcfg + 1);
+			else if((vcfg = strstr(line, "param=")) != NULL) {
+				strcpy(cfg->hostparam, vcfg + strlen("param="));
 			}
-			else if(strstr(line, "port") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					cfg->port = atoi(vcfg + 1);
+			else if((vcfg = strstr(line, "port=")) != NULL) {
+				cfg->port = atoi(vcfg + strlen("port="));
 			}
-			else if(strstr(line, "length") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					cfg->len = atoi(vcfg + 1);
+			else if((vcfg = strstr(line, "length=")) != NULL) {
+				cfg->len = atoi(vcfg + strlen("length="));
 			}
-			else if(strstr(line, "timestamp_format") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					strcpy(cfg->timestamp_fmt, vcfg + 1);
+			else if((vcfg = strstr(line, "timestamp_format=")) != NULL) {
+				strcpy(cfg->timestamp_fmt, vcfg + strlen("timestamp_format="));
 			}
-			else if(strstr(line, "interval") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					cfg->str_int = atoi(vcfg + 1);
+			else if((vcfg = strstr(line, "interval=")) != NULL) {
+				cfg->str_int = atoi(vcfg + strlen("interval="));
 			}
-			else if(strstr(line, "send_time") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					cfg->send_int_time = atoi(vcfg + 1);
+			else if((vcfg = strstr(line, "send_time=")) != NULL) {
+				cfg->send_int_time = atoi(vcfg + strlen("send_time="));
 			}
-			else if(strstr(line, "send_count") != NULL) {
-				if((vcfg = strchr(line, '=')) != NULL)
-					cfg->send_int_count = atoi(vcfg + 1);
+			else if((vcfg = strstr(line, "send_count=")) != NULL) {
+				cfg->send_int_count = atoi(vcfg + strlen("send_count="));
 			}
 		}
 	}

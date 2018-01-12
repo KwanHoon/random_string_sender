@@ -3,8 +3,8 @@
 [http]
 host=db.fun25.co.kr
 port=11704
-hosturl=/sample
-hostparam=&paramsample=1
+#url=/sample
+#param=&paramsample=1
 # unit is milliseconds. NOT IMPLEMENTED YET
 send_time=0
 send_count=10

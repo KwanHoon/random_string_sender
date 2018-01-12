@@ -7,6 +7,8 @@
 #include "queue.h"
 #include "config.h"
 
+#define HTTP_HEADER_SIZE 1024
+#define HTTP_URL_SIZE 1024
 #define MAX_RECVBUF_SIZE 10240
 #define IP_MATCH "([0-9])\.([0-9])\.([0-9])\.([0-9])"
 
